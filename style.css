@@ -1,0 +1,360 @@
+:root {
+  --bg-0: #140b1f;
+  --bg-1: #1f1330;
+  --bg-2: #2a1a3d;
+  --ink: #f3ece2;
+  --ink-dim: #cfc3d9;
+  --glow-1: #ff9d81;
+  --glow-2: #ffd97a;
+  --line: rgba(243, 236, 226, 0.14);
+  --serif: "Hiragino Mincho ProN", "YuMincho", "游明朝", serif;
+  --sans: "Hiragino Kaku Gothic ProN", "Yu Gothic", "游ゴシック", sans-serif;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(120% 90% at 50% -10%, var(--bg-2), var(--bg-0) 60%);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: max(20px, env(safe-area-inset-top)) 16px calc(24px + var(--safe-bottom));
+}
+
+.app {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ---------- header / orb ---------- */
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.title {
+  font-family: var(--serif);
+  font-size: 15px;
+  letter-spacing: 0.18em;
+  color: var(--ink-dim);
+  margin: 0;
+}
+
+.orb-wrap {
+  position: relative;
+  width: 168px;
+  height: 168px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orb-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+}
+
+.orb-ring.r2 { inset: 14px; opacity: 0.7; }
+.orb-ring.r3 { inset: 28px; opacity: 0.4; }
+
+.orb-core {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff6e9, var(--glow-2) 35%, var(--glow-1) 70%, transparent 78%);
+  box-shadow: 0 0 30px 6px rgba(255, 157, 129, 0.45), 0 0 70px 18px rgba(255, 217, 122, 0.18);
+  animation: breathe 4.2s ease-in-out infinite;
+  transition: width 0.6s ease, height 0.6s ease;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.06); filter: brightness(1.12); }
+}
+
+.stage-name {
+  font-family: var(--serif);
+  font-size: 22px;
+  margin: 2px 0 0;
+}
+
+.stage-desc {
+  font-size: 12.5px;
+  color: var(--ink-dim);
+  margin: 0;
+  max-width: 320px;
+}
+
+.love-total {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+}
+
+.love-total b { color: var(--glow-2); font-weight: 600; }
+
+/* ---------- progress ---------- */
+.progress-track {
+  width: 100%;
+  height: 3px;
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--glow-1), var(--glow-2));
+  transition: width 0.5s ease;
+}
+.progress-label {
+  font-size: 11px;
+  color: var(--ink-dim);
+  text-align: right;
+}
+
+/* ---------- question card ---------- */
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 22px 18px;
+  backdrop-filter: blur(6px);
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--glow-1);
+  margin-bottom: 10px;
+}
+
+.question-text {
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.75;
+  margin: 0 0 20px;
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.choice-btn {
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.03);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 14.5px;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+}
+.choice-btn:active { transform: scale(0.98); }
+.choice-btn:hover { border-color: var(--glow-1); background: rgba(255,157,129,0.08); }
+.choice-btn .letter {
+  display: inline-block;
+  width: 20px;
+  color: var(--glow-2);
+  font-family: var(--serif);
+}
+
+/* ---------- feedback overlay ---------- */
+.feedback-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 6, 16, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 10;
+}
+.feedback-overlay.show { opacity: 1; pointer-events: auto; }
+
+.feedback-card {
+  width: 100%;
+  max-width: 380px;
+  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 26px 22px;
+  text-align: center;
+  transform: translateY(8px);
+  transition: transform 0.25s ease;
+}
+.feedback-overlay.show .feedback-card { transform: translateY(0); }
+
+.feedback-delta {
+  font-family: var(--serif);
+  font-size: 26px;
+  color: var(--glow-2);
+  margin: 0 0 4px;
+}
+
+.feedback-comment {
+  font-size: 14px;
+  color: var(--ink-dim);
+  margin: 10px 0 20px;
+  line-height: 1.7;
+}
+
+.feedback-btn, .primary-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(90deg, var(--glow-1), var(--glow-2));
+  color: #241533;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* evolution moment */
+.evolution-banner {
+  font-family: var(--serif);
+  font-size: 13px;
+  color: var(--glow-2);
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+  opacity: 0;
+  animation: fadein 0.6s ease forwards 0.2s;
+}
+@keyframes fadein { to { opacity: 1; } }
+
+/* rival */
+.rival-name {
+  font-family: var(--serif);
+  font-size: 20px;
+  margin: 6px 0 2px;
+}
+.rival-compare {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--ink-dim);
+  margin: 16px 0 6px;
+}
+.rival-compare b { color: var(--ink); font-size: 15px; display: block; }
+
+/* end state */
+.end-note {
+  font-size: 12.5px;
+  color: var(--ink-dim);
+  line-height: 1.8;
+  text-align: center;
+}
+
+footer.foot {
+  font-size: 10.5px;
+  color: rgba(207, 195, 217, 0.5);
+  text-align: center;
+  margin-top: 6px;
+}
+footer.foot a { color: inherit; }
+
+@media (prefers-reduced-motion: reduce) {
+  .orb-core { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ---------- 宇宙どうぶつ選択画面 ---------- */
+#selectScreen { padding-top: 10px; }
+
+.species-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.species-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 6px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: var(--ink);
+  transition: border-color 0.2s, transform 0.15s;
+}
+.species-card:active { transform: scale(0.97); }
+.species-card:hover { border-color: var(--glow-1); }
+
+.species-preview { width: 64px; height: 64px; }
+.species-preview svg { width: 100%; height: 100%; }
+
+.species-name { font-family: var(--serif); font-size: 12.5px; }
+.species-note { font-size: 9.5px; color: var(--ink-dim); text-align: center; line-height: 1.4; }
+
+/* ---------- 宇宙どうぶつ（成長後） ---------- */
+.creature-wrap {
+  width: 176px;
+  height: 176px;
+}
+.creature-wrap svg { width: 100%; height: 100%; }
+
+/* ---------- 地球人ぽい指標パネル ---------- */
+.ego-details {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+.ego-details summary {
+  font-size: 11.5px;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+.ego-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+.ego-label { width: 82px; flex-shrink: 0; }
+.ego-bar {
+  flex: 1;
+  height: 5px;
+  background: var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.ego-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #8a7ba6, #574a72);
+  transition: width 0.5s ease;
+}

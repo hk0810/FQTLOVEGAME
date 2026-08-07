@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>愛を育てるもの — 管理者モード</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .app { max-width: 640px; }
+  .admin-card { background: rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
+  .admin-card label { display:block; font-size:12px; color:var(--ink-dim); margin:10px 0 4px; }
+  .admin-card input, .admin-card textarea, .admin-card select {
+    width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--line);
+    background:rgba(0,0,0,0.25); color:var(--ink); font-family:var(--sans); font-size:13.5px;
+  }
+  textarea { min-height: 60px; resize: vertical; }
+  .row { display:flex; gap:8px; }
+  .row > * { flex:1; }
+  .choice-block { border-top:1px dashed var(--line); padding-top:10px; margin-top:10px; }
+  .q-item { display:flex; justify-content:space-between; align-items:center; padding:8px 4px; border-bottom:1px solid var(--line); font-size:13px; }
+  .q-item button { background:none; border:1px solid var(--line); color:var(--ink-dim); border-radius:8px; padding:4px 10px; font-size:12px; cursor:pointer; }
+  .btnrow { display:flex; gap:10px; margin-top:14px; }
+  .ghost-btn { flex:1; padding:11px; border-radius:10px; border:1px solid var(--line); background:transparent; color:var(--ink); cursor:pointer; }
+  #gate { text-align:center; padding-top:60px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div id="gate">
+    <p class="title">管理者モード</p>
+    <p class="stage-desc">
+      これはブラウザ内だけの編集モードです。<br>
+      本当の秘密の鍵ではありません（詳細はチャットの説明をご覧ください）。
+    </p>
+    <input id="keyInput" placeholder="管理者キーを入力" style="max-width:260px;margin:16px auto;display:block;text-align:center;">
+    <button class="primary-btn" style="max-width:260px;margin:0 auto;" id="enterBtn">管理者モードに入る</button>
+  </div>
+
+  <div id="panel" style="display:none">
+    <h1 class="stage-name" style="text-align:center">設問管理</h1>
+    <p class="stage-desc" style="text-align:center" id="countLabel"></p>
+
+    <div class="admin-card">
+      <p class="eyebrow">設問一覧</p>
+      <div id="list"></div>
+    </div>
+
+    <div class="admin-card">
+      <p class="eyebrow" id="formTitle">新しい設問を追加</p>
+      <label>ID（未入力なら自動採番）</label>
+      <input id="fId" type="number">
+      <div class="row">
+        <div>
+          <label>レベル</label>
+          <input id="fLevel" type="number" value="1">
+        </div>
+        <div>
+          <label>カテゴリー</label>
+          <input id="fCategory" placeholder="例: 思いやり">
+        </div>
+      </div>
+      <label>問題文</label>
+      <textarea id="fQuestion"></textarea>
+
+      <div id="choicesWrap"></div>
+      <button class="ghost-btn" id="addChoiceBtn" type="button" style="margin-top:8px;">＋ 選択肢を追加</button>
+
+      <div class="btnrow">
+        <button class="primary-btn" id="saveBtn" style="flex:1">この設問を保存</button>
+        <button class="ghost-btn" id="clearBtn" type="button">クリア</button>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <p class="eyebrow">JSON 書き出し</p>
+      <p class="stage-desc" style="text-align:left">
+        元の questions.json ＋ ここで追加・編集した内容をまとめて書き出します。
+        書き出したファイルで questions.json を置き換える（またはファイル名を変えて
+        CONFIG.questionFiles に追加する）と、ゲームに反映されます。
+      </p>
+      <button class="ghost-btn" id="exportBtn" style="width:100%">questions.json を書き出す</button>
+    </div>
+  </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>

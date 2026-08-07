@@ -1,0 +1,7 @@
+[
+  { "id": 1, "afterQuestions": 6,  "name": "はじめの鏡", "love": 30,  "message": "あなたよりも、少しだけ大きな愛を持つ存在がいました。" },
+  { "id": 2, "afterQuestions": 14, "name": "静かな旅人", "love": 90,  "message": "多くの問いを重ねてきた、静かな光を持つ存在でした。" },
+  { "id": 3, "afterQuestions": 22, "name": "赦しの番人", "love": 180, "message": "深く傷つき、深く赦した者だけが持つ光でした。" },
+  { "id": 4, "afterQuestions": 29, "name": "無償の灯", "love": 320, "message": "見返りを求めない光は、どこまでも澄んでいました。" },
+  { "id": 5, "afterQuestions": 35, "name": "究極の光", "love": 550, "message": "とても大きな光でした。けれど、これで終わりではありません。愛には天井がないのです。" }
+]

@@ -1,0 +1,58 @@
+{
+  "egoTraits": [
+    {
+      "key": "selfCenteredness",
+      "label": "自己中心さ"
+    },
+    {
+      "key": "arrogance",
+      "label": "傲慢さ"
+    },
+    {
+      "key": "vanity",
+      "label": "自惚れ"
+    },
+    {
+      "key": "selfishness",
+      "label": "身勝手さ"
+    },
+    {
+      "key": "showingOff",
+      "label": "見栄"
+    },
+    {
+      "key": "jealousy",
+      "label": "嫉妬"
+    },
+    {
+      "key": "stubbornness",
+      "label": "頑固さ"
+    },
+    {
+      "key": "controlling",
+      "label": "支配欲"
+    },
+    {
+      "key": "suspicion",
+      "label": "猜疑心"
+    },
+    {
+      "key": "attachment",
+      "label": "執着"
+    },
+    {
+      "key": "fear",
+      "label": "恐れ"
+    },
+    {
+      "key": "comparing",
+      "label": "比較する心"
+    }
+  ],
+  "loveTrait": {
+    "key": "love",
+    "label": "愛"
+  },
+  "initialEgoValue": 10,
+  "note": "12の地球人ぽい指標は初期値10からスタートし、愛(love)が育つほど少しずつ小さくなっていく。将来的には設問ごとに個別の指標へ影響を持たせられるよう choices の attributes に各キーを追加できる。"
+}

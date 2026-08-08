@@ -478,6 +478,7 @@ function setupMusicUI() {
   const select = document.getElementById("musicSelect");
   const playBtn = document.getElementById("musicPlayBtn");
   const volume = document.getElementById("musicVolume");
+  const status = document.getElementById("musicStatus");
   if (select.dataset.bound) return;
 
   MUSIC_TRACKS.forEach(t => {
@@ -490,17 +491,31 @@ function setupMusicUI() {
   let playing = false;
 
   select.addEventListener("change", () => {
-    if (playing) playTrack(select.value);
+    if (playing) {
+      playTrack(select.value);
+      const t = MUSIC_TRACKS.find(t => t.id === select.value);
+      status.textContent = `▶️ 再生中：${t.name}`;
+    }
   });
   playBtn.addEventListener("click", () => {
     if (playing) {
       stopTrack();
       playBtn.textContent = "再生";
+      status.textContent = "停止中";
       playing = false;
     } else {
-      playTrack(select.value || MUSIC_TRACKS[0].id);
+      const trackId = select.value || MUSIC_TRACKS[0].id;
+      playTrack(trackId);
       playBtn.textContent = "停止";
+      const t = MUSIC_TRACKS.find(t => t.id === trackId);
+      status.textContent = `▶️ 再生中：${t.name}`;
       playing = true;
+      // 一部のブラウザでは最初の1回でコンテキストの起動が遅れることがあるため、少し待って状態を確認する
+      setTimeout(() => {
+        if (audioCtx && audioCtx.state === "suspended") {
+          status.textContent = "🔇 音声がブロックされています。もう一度「再生」を押してください。";
+        }
+      }, 400);
     }
   });
   volume.addEventListener("input", () => setMusicVolume(Number(volume.value)));

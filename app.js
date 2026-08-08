@@ -93,14 +93,14 @@ function renderSpeciesSelect() {
     card.innerHTML = `
       <div class="species-preview" id="preview-${sp.id}"></div>
       <span class="species-name">${escapeHtml(sp.name)}</span>
-      <span class="species-note">${escapeHtml(sp.note)}</span>
+      <span class="species-note">${escapeHtml(sp.personality)}</span>
     `;
     card.addEventListener("click", () => chooseSpecies(sp.id));
     grid.appendChild(card);
 
+    // 選択画面ではまだ「とてもシンプルな姿」（進化ステージ0）だけを見せる
     document.getElementById(`preview-${sp.id}`).innerHTML = generateCreatureSVG({
-      speciesShape: sp.shape, hue: sp.hue, love: 0, maxKnownLove: MAX_LOVE,
-      seedKey: `preview-${sp.id}`
+      targetParts: sp.parts, stageIndex: 0, stageCount: EVOLUTION.length, idPrefix: `pv${sp.id}`
     });
   });
 }
@@ -136,13 +136,15 @@ function renderStage() {
   document.getElementById("loveTotal").textContent = state.total;
 
   const sp = getSpecies();
+  const stageIndex = EVOLUTION.indexOf(stage);
   document.getElementById("creatureMount").innerHTML = generateCreatureSVG({
-    speciesShape: sp.shape,
-    hue: sp.hue,
-    love: state.total,
-    maxKnownLove: MAX_LOVE,
-    seedKey: `${sp.id}-${state.total}-${state.answeredCount}`
+    targetParts: sp.parts,
+    stageIndex,
+    stageCount: EVOLUTION.length,
+    idPrefix: "main"
   });
+  document.getElementById("creatureName").textContent =
+    stageIndex >= EVOLUTION.length - 1 ? `${sp.name}` : `育っている宇宙どうぶつ（→ ${sp.name}）`;
 
   renderEgoPanel();
 }
@@ -295,6 +297,22 @@ function renderEnd() {
      この物語はまだ先へ続いていきます。`;
   document.getElementById("choices").innerHTML = "";
 }
+
+/* ---------------- 疑似乱数（ライバル生成専用） ---------------- */
+function seedFrom(...parts) {
+  const str = parts.join("|");
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function makeRng(seed) {
+  let s = seed || 1;
+  return function () {
+    s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0;
+    return (s >>> 0) / 4294967295;
+  };
+}
+function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
 
 /* ---------------- ユーティリティ ---------------- */
 function escapeHtml(str) {

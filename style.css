@@ -358,3 +358,10 @@ footer.foot a { color: inherit; }
   background: linear-gradient(90deg, #8a7ba6, #574a72);
   transition: width 0.5s ease;
 }
+
+.creature-name {
+  font-size: 11px;
+  color: var(--ink-dim);
+  margin: 2px 0 0;
+  letter-spacing: 0.04em;
+}

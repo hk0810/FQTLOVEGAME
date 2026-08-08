@@ -42,6 +42,8 @@ let SPECIES = [];
 let TRAITS = null;
 let MENTOR_NAMES = null;
 let MAX_LOVE = 100; // questions.json から算出する理論上の最大値
+let LEVEL_COUNTS = {}; // level番号 -> その水準の設問数
+let LEVEL_TOTAL = 13;   // レベルの総数（進捗表示は問題数ではなくこの単位で見せる）
 
 init();
 
@@ -54,6 +56,10 @@ async function init() {
     qLists.flat().forEach(q => map.set(q.id, q));
     QUESTIONS = Array.from(map.values()).sort((a, b) => a.id - b.id);
     MAX_LOVE = QUESTIONS.reduce((sum, q) => sum + Math.max(...q.choices.map(c => (c.attributes && c.attributes.love) || 0)), 0) || 100;
+
+    LEVEL_COUNTS = {};
+    QUESTIONS.forEach(q => { LEVEL_COUNTS[q.level] = (LEVEL_COUNTS[q.level] || 0) + 1; });
+    LEVEL_TOTAL = Object.keys(LEVEL_COUNTS).length || 13;
 
     EVOLUTION = (await fetch(CONFIG.evolutionFile).then(r => r.json())).sort((a, b) => a.min - b.min);
     MENTORS = (await fetch(CONFIG.mentorsFile).then(r => r.json())).sort((a, b) => a.afterQuestions - b.afterQuestions);
@@ -284,9 +290,29 @@ function renderNextQuestion() {
 }
 
 function updateProgress() {
-  const total = QUESTIONS.length, done = state.answeredCount;
-  document.getElementById("progressFill").style.width = total ? Math.min(100, (done / total) * 100) + "%" : "0%";
-  document.getElementById("progressLabel").textContent = `${done} / ${total} 問`;
+  // 165問という生の数字は表示せず、13レベルの中でどこまで進んだかを見せる
+  let completedLevels = 0;
+  let currentLevel = LEVEL_TOTAL;
+  let currentLevelFraction = 0;
+
+  for (let lv = 1; lv <= LEVEL_TOTAL; lv++) {
+    const totalInLevel = LEVEL_COUNTS[lv] || 0;
+    if (totalInLevel === 0) continue;
+    const doneInLevel = QUESTIONS.filter(q => q.level === lv && state.answeredIds.includes(q.id)).length;
+    if (doneInLevel >= totalInLevel) {
+      completedLevels++;
+    } else {
+      currentLevel = lv;
+      currentLevelFraction = doneInLevel / totalInLevel;
+      break;
+    }
+    if (lv === LEVEL_TOTAL) currentLevel = LEVEL_TOTAL;
+  }
+
+  const overall = Math.min(1, (completedLevels + currentLevelFraction) / LEVEL_TOTAL);
+  document.getElementById("progressFill").style.width = (overall * 100) + "%";
+  document.getElementById("progressLabel").textContent =
+    completedLevels >= LEVEL_TOTAL ? `${LEVEL_TOTAL} / ${LEVEL_TOTAL} 完了` : `LEVEL ${currentLevel} / ${LEVEL_TOTAL}`;
 }
 
 /* ---------------- 回答処理 ---------------- */

@@ -11313,6 +11313,12 @@ window.fqtConfirm = function(message, onConfirm){
         animal.quote = latest.quote;
         changed = true;
       }
+      // 🎨 人氣者の配色を後から見直した際、すでに図鑑登録済みの見た目（parts）も
+      //    最新の配色に合わせて更新する（=すでに出会ったユーザーにも新しい色を反映する）
+      if (animal.parts && latest.parts && JSON.stringify(animal.parts) !== JSON.stringify(latest.parts)){
+        animal.parts = latest.parts;
+        changed = true;
+      }
     });
     if (changed) saveDexData(dexData);
   })();

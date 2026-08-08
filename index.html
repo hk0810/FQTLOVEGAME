@@ -215,7 +215,7 @@
   .title-block .tagline-sub{
     font-size: 11px;
     font-weight: 500;
-    color: #6fa8e0;
+    color: #d4af37;
     margin: 6px 0 0;
     line-height: 1.6;
   }
@@ -5733,7 +5733,7 @@
     <span class="eyebrow">LIFE DAYS COUNTER</span>
     <h1>FQT LIFE COUNTER</h1>
     <p class="tagline">あなたは地球に来て何日目？<br>今日のあなたの運勢は？</p>
-    <p class="tagline-sub">毎日使うことで<br>あなたという存在の凄さに<br>氣づくことができるアプリ</p>
+    <p class="tagline-sub">継続して使うことで<br>あなたという存在の凄さに<br>氣づいていくアプリ</p>
     <button class="bgm-btn" id="bgmBtn" type="button">🎵　癒しのBGMを再生</button>
     <select class="bgm-preset-select" id="bgmPresetSelect">
       <option value="moon">🌙 月夜</option>
@@ -10703,33 +10703,33 @@ window.fqtConfirm = function(message, onConfirm){
   const SIGNATURE_CREATURES = [
     // ----- 人氣者13体（全員★5固定・出現率は13体まとめて15%） -----
     // ※ key は「宇宙どうぶつ占い」など今後の機能から個体を特定するための固定ID（変更しないこと）
-    { key: 'moon_mochi', parts: { body:15, ear:5,  eye:7,  mouth:14, nose:4, tail:19, wing:3, horn:7, antenna:9, hand:10, foot:8,  pattern:5,  background:18, color:26, star:12 },
+    { key: 'moon_mochi', parts: { body:15, ear:5,  eye:7,  mouth:14, nose:4, tail:19, wing:3, horn:7, antenna:9, hand:10, foot:8,  pattern:5,  background:18, color:9, star:12 },
       rarity: 5, name: 'ムーンモチ', personality: 'のんびり屋・癒しマスター', favorite: 'お昼寝', quote: 'まんまるお月さまの下で、ねむたいな…' },
     { key: 'san_san_poko', parts: { body:18, ear:10, eye:1,  mouth:4,  nose:6, tail:18, wing:2, horn:1, antenna:0, hand:4,  foot:6,  pattern:5,  background:18, color:2,  star:2 },
       rarity: 5, name: 'サンサンぽこ', personality: 'よく笑う・太陽氣質', favorite: '朝日', quote: '今日もいい天氣！元氣にいこう☀️' },
-    { key: 'yume_purin', parts: { body:8,  ear:3,  eye:7,  mouth:0,  nose:5, tail:4,  wing:7, horn:9, antenna:6, hand:11, foot:11, pattern:12, background:0,  color:13, star:2 },
+    { key: 'yume_purin', parts: { body:8,  ear:3,  eye:7,  mouth:0,  nose:5, tail:4,  wing:7, horn:9, antenna:6, hand:11, foot:11, pattern:12, background:0,  color:14, star:2 },
       rarity: 5, name: 'ゆめプリン', personality: '夢見がち・理想を描く夢想家', favorite: 'キラキラしたもの', quote: '今夜はどんな夢を見ようかな' },
-    { key: 'honey_puni', parts: { body:10, ear:12, eye:14, mouth:1,  nose:7, tail:10, wing:4, horn:0, antenna:2, hand:10, foot:12, pattern:7,  background:16, color:1,  star:12 },
+    { key: 'honey_puni', parts: { body:10, ear:12, eye:14, mouth:1,  nose:7, tail:10, wing:4, horn:0, antenna:2, hand:10, foot:12, pattern:7,  background:16, color:53,  star:12 },
       rarity: 5, name: 'ハニプニ', personality: '甘えん坊・愛情豊か', favorite: 'はちみつ', quote: 'ぎゅーってしてほしいな' },
-    { key: 'sakura_mochi', parts: { body:19, ear:13, eye:8,  mouth:10, nose:8, tail:2,  wing:1, horn:4, antenna:7, hand:14, foot:6,  pattern:15, background:18, color:21, star:4 },
+    { key: 'sakura_mochi', parts: { body:19, ear:13, eye:8,  mouth:10, nose:8, tail:2,  wing:1, horn:4, antenna:7, hand:14, foot:6,  pattern:15, background:18, color:24, star:4 },
       rarity: 5, name: 'さくらもち', personality: 'おっとり・優しい心', favorite: '花', quote: '春の風がきもちいいね' },
-    { key: 'puni_koro', parts: { body:18, ear:12, eye:6,  mouth:13, nose:3, tail:10, wing:0, horn:3, antenna:1, hand:11, foot:11, pattern:14, background:8,  color:24, star:7 },
+    { key: 'puni_koro', parts: { body:18, ear:12, eye:6,  mouth:13, nose:3, tail:10, wing:0, horn:3, antenna:1, hand:11, foot:11, pattern:14, background:8,  color:16, star:7 },
       rarity: 5, name: 'ぷにコロ', personality: 'マイペース・自然体', favorite: '昼寝', quote: 'ころころ〜っと転がってきたよ' },
-    { key: 'kira_kiran', parts: { body:6,  ear:16, eye:14, mouth:9,  nose:0, tail:18, wing:8, horn:4, antenna:4, hand:6,  foot:14, pattern:4,  background:13, color:26, star:4 },
+    { key: 'kira_kiran', parts: { body:6,  ear:16, eye:14, mouth:9,  nose:0, tail:18, wing:8, horn:4, antenna:4, hand:6,  foot:14, pattern:4,  background:13, color:36, star:4 },
       rarity: 5, name: 'きらきらん', personality: 'ムードメーカー・周囲を照らす存在', favorite: '星', quote: 'みんなで見ると星はもっときれいだよ' },
-    { key: 'mintoru', parts: { body:3,  ear:14, eye:4,  mouth:8,  nose:1, tail:0,  wing:7, horn:3, antenna:0, hand:10, foot:9,  pattern:8,  background:14, color:5,  star:1 },
+    { key: 'mintoru', parts: { body:3,  ear:14, eye:4,  mouth:8,  nose:1, tail:0,  wing:7, horn:3, antenna:0, hand:10, foot:9,  pattern:8,  background:14, color:34,  star:1 },
       rarity: 5, name: 'みんとる', personality: '几帳面・誠実派', favorite: 'ハーブティー', quote: 'すっきり爽やかな氣分だよ' },
-    { key: 'pofu_pofu', parts: { body:3,  ear:15, eye:5,  mouth:8,  nose:1, tail:0,  wing:3, horn:5, antenna:6, hand:11, foot:11, pattern:22, background:15, color:0,  star:0 },
+    { key: 'pofu_pofu', parts: { body:3,  ear:15, eye:5,  mouth:8,  nose:1, tail:0,  wing:3, horn:5, antenna:6, hand:11, foot:11, pattern:22, background:15, color:11,  star:0 },
       rarity: 5, name: 'ぽふぽふ', personality: '甘党・安らぎを届ける癒し系', favorite: 'マシュマロ', quote: 'ぽふぽふのほっぺ、さわってみて' },
-    { key: 'paku_pakun', parts: { body:1,  ear:13, eye:7,  mouth:8,  nose:4, tail:16, wing:0, horn:2, antenna:5, hand:2,  foot:0,  pattern:20, background:15, color:1,  star:1 },
+    { key: 'paku_pakun', parts: { body:1,  ear:13, eye:7,  mouth:8,  nose:4, tail:16, wing:0, horn:2, antenna:5, hand:2,  foot:0,  pattern:20, background:15, color:50,  star:1 },
       rarity: 5, name: 'パクパクン', personality: '食いしん坊・ワクワクを届ける発信源', favorite: 'クッキー', quote: '今日のおやつは何かな〜？' },
 
     // ----- 人氣者13体のうち、残り3体（元々の設計時の名残） -----
-    { key: 'cosmo_prince', parts: { body:3,  ear:1,  eye:18, mouth:3, nose:5, tail:13, wing:4, horn:6, antenna:2, hand:5,  foot:14, pattern:5,  background:15, color:12, star:6 },
+    { key: 'cosmo_prince', parts: { body:3,  ear:1,  eye:18, mouth:3, nose:5, tail:13, wing:4, horn:6, antenna:2, hand:5,  foot:14, pattern:5,  background:15, color:46, star:6 },
       rarity: 5, name: 'コスモドリーマー', personality: 'ロマンチスト・未来を信じる夢追い星', favorite: '流れ星', quote: '君に会えて、宇宙中が輝いて見えるよ' },
-    { key: 'galaxy_queen', parts: { body:19, ear:8,  eye:1,  mouth:0, nose:2, tail:19, wing:9, horn:8, antenna:5, hand:8,  foot:8,  pattern:16, background:14, color:22, star:7 },
+    { key: 'galaxy_queen', parts: { body:19, ear:8,  eye:1,  mouth:0, nose:2, tail:19, wing:9, horn:8, antenna:5, hand:8,  foot:8,  pattern:16, background:14, color:20, star:7 },
       rarity: 5, name: 'コスモアーティスト', personality: '芸術家肌・感性豊か', favorite: '銀河の景色', quote: 'この宇宙は、わたしが描いた一枚の絵なの' },
-    { key: 'legend_star', parts: { body:12, ear:18, eye:16, mouth:8, nose:4, tail:2,  wing:9, horn:0, antenna:6, hand:10, foot:4,  pattern:16, background:8,  color:13, star:8 },
+    { key: 'legend_star', parts: { body:12, ear:18, eye:16, mouth:8, nose:4, tail:2,  wing:9, horn:0, antenna:6, hand:10, foot:4,  pattern:16, background:8,  color:43, star:8 },
       rarity: 5, name: 'レジェンドスター', personality: '博愛・包容力のあるリーダー', favorite: '伝説の物語', quote: 'いつか私も、誰かの伝説になりたいな' }
   ];
   // 「宇宙どうぶつ占い」など今後の機能から、人氣者13体のデータ（key・パーツ・名前等）を
@@ -11381,8 +11381,14 @@ window.fqtConfirm = function(message, onConfirm){
         favorite: texts.favorite,
         parts: parts,
         firstMetDate: getTodayDateStringForDex(),
-        signatureKey: texts.signatureKey || null // 「人氣者13体」のどれかであれば、そのkeyを記録（宇宙どうぶつ占い等で使用予定）
+        signatureKey: texts.signatureKey || null, // 「人氣者13体」のどれかであれば、そのkeyを記録（宇宙どうぶつ占い等で使用予定）
+        meetCount: 1 // 絆レベル表示用：出会った回数（数字自体は画面に出さず、しきい値の判定にだけ使う）
       };
+      saveDexData(dexData);
+    } else {
+      // 🔗 再会するたびに、絆レベル判定用のカウントだけ静かに加算する（画面には回数を出さない）
+      const known = dexData.discovered[animalId];
+      known.meetCount = (known.meetCount || 1) + 1;
       saveDexData(dexData);
     }
 
@@ -11447,7 +11453,18 @@ window.fqtConfirm = function(message, onConfirm){
       }
     } else {
       newBadge.style.display = 'none';
-      metNote.textContent = '会ったことがあるよ！';
+      // 🔗 絆レベル：具体的な回数は出さず、しきい値に応じたやわらかい一言だけを添える
+      const known = dexData.discovered[currentAnimal.animalId];
+      const meetCount = (known && known.meetCount) || 2;
+      let bondText = '会ったことがあるよ！';
+      if (meetCount >= 13){
+        bondText = '会ったことがあるよ！ ✨大の仲良し✨';
+      } else if (meetCount >= 8){
+        bondText = '会ったことがあるよ！ 💞 絆が深まってきたね';
+      } else if (meetCount >= 3){
+        bondText = '会ったことがあるよ！ 🔗 仲良しさんだね';
+      }
+      metNote.textContent = bondText;
       if (cardTitle) cardTitle.textContent = '🌌 また宇宙どうぶつに出会った！';
     }
   }
@@ -12514,10 +12531,22 @@ window.fqtConfirm = function(message, onConfirm){
     currentIsEventAnimal = true;
     const isFirstMeeting = !eventData.discovered[creatureId];
 
+    // 🔁 再会（isFirstMeeting=false）の場合は、その場でランダム生成せず、
+    //    図鑑に最初に登録されたレア度・見た目をそのまま使う
+    //    （「同じ見た目＝同じ個体」という考え方に合わせ、再会時の表示をブレさせないため）
+    let parts;
+    if (!isFirstMeeting){
+      const known = eventData.discovered[creatureId];
+      rarity = known.rarity;
+      parts = known.parts;
+    }
+
     // 見た目は通常の宇宙どうぶつ生成システムを再利用し、右上にイベントの絵文字バッジを重ねる
     const helpers = window.__fqtAnimalHelpers;
-    const seed = simpleHash(creatureId + '_' + Date.now() + '_' + Math.random());
-    const parts = helpers.pickPartIndices(seed);
+    if (!parts){
+      const seed = simpleHash(creatureId + '_' + Date.now() + '_' + Math.random());
+      parts = helpers.pickPartIndices(seed);
+    }
     let svg = helpers.buildAnimalSVG(parts, 'event' + creatureId + Date.now());
     // SVGの閉じタグ直前にイベント絵文字バッジを挿入する
     svg = svg.replace('</svg>', `<text x="172" y="34" font-size="26" text-anchor="middle">${event.emoji}</text></svg>`);

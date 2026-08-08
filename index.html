@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>愛を育てるもの</title>
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 <div class="app">
@@ -34,6 +34,18 @@
       </label>
     </div>
 
+    <div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <p class="progress-label" id="progressLabel">0 / 0 問</p>
+    </div>
+
+    <div class="card" id="questionCard">
+      <p class="eyebrow" id="questionCategory">思いやり</p>
+      <p class="question-text" id="questionText">読み込み中…</p>
+      <div class="choices" id="choices"></div>
+      <button class="back-btn" id="backBtn" style="display:none">← 戻って選び直す</button>
+    </div>
+
     <details class="ego-details">
       <summary>地球人ぽい指標（愛が育つと小さくなる）</summary>
       <div id="egoPanel"></div>
@@ -54,18 +66,6 @@
       </div>
     </details>
 
-    <div>
-      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-      <p class="progress-label" id="progressLabel">0 / 0 問</p>
-    </div>
-
-    <div class="card" id="questionCard">
-      <p class="eyebrow" id="questionCategory">思いやり</p>
-      <p class="question-text" id="questionText">読み込み中…</p>
-      <div class="choices" id="choices"></div>
-      <button class="back-btn" id="backBtn" style="display:none">← 戻って選び直す</button>
-    </div>
-
     <footer class="foot">
       不思議な、愛を育てる小さな物語。<br>
       <button class="save-btn" id="saveBtn">💾 保存して一旦やめる</button>
@@ -79,8 +79,8 @@
   <div class="feedback-card" id="feedbackCard"></div>
 </div>
 
-<script src="creature.js?v=5"></script>
-<script src="music.js?v=5"></script>
-<script src="app.js?v=5"></script>
+<script src="creature.js?v=6"></script>
+<script src="music.js?v=6"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>

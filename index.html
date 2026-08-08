@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>愛を育てるもの</title>
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 <div class="app">
@@ -32,6 +32,15 @@
         <input type="checkbox" id="showPowerToggle">
         愛のパワー指標を表示する
       </label>
+      <label class="power-toggle">
+        <input type="checkbox" id="readAloudToggle">
+        設問を読み上げる
+      </label>
+      <div class="read-speed-row" id="readSpeedRow" style="display:none">
+        <span>速さ</span>
+        <input type="range" id="readSpeedSlider" min="0.5" max="2" step="0.1" value="1">
+        <span id="readSpeedLabel">1.0x</span>
+      </div>
     </div>
 
     <div>
@@ -79,8 +88,8 @@
   <div class="feedback-card" id="feedbackCard"></div>
 </div>
 
-<script src="creature.js?v=7"></script>
-<script src="music.js?v=7"></script>
-<script src="app.js?v=7"></script>
+<script src="creature.js?v=8"></script>
+<script src="music.js?v=8"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>

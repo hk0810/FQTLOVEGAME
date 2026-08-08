@@ -26,7 +26,9 @@ const state = {
   answeredCount: 0,
   seenMentors: [],
   history: [],            // 戻るボタン用の直近の回答履歴 [{qId, delta, egoShrink, mentorId}]
-  showPower: false        // チェックを入れると、常に愛のパワーの増減・合計を表示する
+  showPower: false,       // チェックを入れると、常に愛のパワーの増減・合計を表示する
+  readAloud: false,       // 設問の読み上げON/OFF
+  readSpeed: 1.0          // 読み上げ速度（0.5〜2.0）
 };
 
 const COMPLETION = {
@@ -149,6 +151,7 @@ function startGame() {
     saveBtn.dataset.bound = "1";
   }
   setupMusicUI();
+  setupReadAloudUI();
   const toggle = document.getElementById("showPowerToggle");
   toggle.checked = state.showPower;
   if (!toggle.dataset.bound) {
@@ -186,6 +189,7 @@ function saveAndPause() {
 
 /* すべてを消して、最初の宇宙どうぶつ選択画面に戻す */
 function resetGame() {
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
   state.speciesId = null;
   state.total = 0;
   state.perfectCount = 0;
@@ -274,6 +278,8 @@ function renderNextQuestion() {
   document.getElementById("questionCard").style.display = "";
   document.getElementById("questionCategory").textContent = `LEVEL ${q.level} ・ ${q.category}`;
   document.getElementById("questionText").textContent = q.question;
+
+  if (state.readAloud) speakText(q.question);
 
   const wrap = document.getElementById("choices");
   wrap.innerHTML = "";
@@ -498,6 +504,49 @@ function makeRng(seed) {
   };
 }
 function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
+
+/* ---------------- 設問の読み上げ ---------------- */
+function speakText(text) {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel(); // 前の読み上げが残っていたら止める
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = "ja-JP";
+  utter.rate = state.readSpeed;
+  window.speechSynthesis.speak(utter);
+}
+
+function setupReadAloudUI() {
+  const toggle = document.getElementById("readAloudToggle");
+  const speedRow = document.getElementById("readSpeedRow");
+  const speedSlider = document.getElementById("readSpeedSlider");
+  const speedLabel = document.getElementById("readSpeedLabel");
+  if (toggle.dataset.bound) return;
+
+  toggle.checked = state.readAloud;
+  speedSlider.value = state.readSpeed;
+  speedLabel.textContent = `${state.readSpeed.toFixed(1)}x`;
+  speedRow.style.display = state.readAloud ? "" : "none";
+
+  toggle.addEventListener("change", () => {
+    state.readAloud = toggle.checked;
+    speedRow.style.display = state.readAloud ? "" : "none";
+    saveState();
+    if (state.readAloud) {
+      const q = nextUnanswered();
+      if (q) speakText(q.question);
+    } else if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+  });
+
+  speedSlider.addEventListener("input", () => {
+    state.readSpeed = Number(speedSlider.value);
+    speedLabel.textContent = `${state.readSpeed.toFixed(1)}x`;
+    saveState();
+  });
+
+  toggle.dataset.bound = "1";
+}
 
 /* ---------------- 癒しの音楽（FQT LIFE COUNTERと同じ操作感） ---------------- */
 function setupMusicUI() {

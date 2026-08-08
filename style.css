@@ -502,3 +502,17 @@ footer.foot a { color: inherit; }
   margin: 4px auto 12px;
 }
 .mentor-portrait svg { width: 100%; height: 100%; }
+
+.read-speed-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--ink-dim);
+  margin-top: 2px;
+}
+.read-speed-row input[type="range"] {
+  flex: 1;
+  max-width: 140px;
+  accent-color: var(--glow-1);
+}

@@ -5,7 +5,7 @@
    species.json / traits.json から読み込む。
    ========================================================= */
 
-const CACHE_VERSION = "20"; // データ更新のたびに数字を上げると、キャッシュされた古いJSONを使い続けるのを防げる
+const CACHE_VERSION = "21"; // データ更新のたびに数字を上げると、キャッシュされた古いJSONを使い続けるのを防げる
 
 const CONFIG = {
   questionFiles: ["questions.json"],
@@ -327,7 +327,7 @@ function renderStage() {
   }
 
   const sp = getSpecies();
-  const progress = growProgress();
+  const progress = stageVisualProgress();
   document.getElementById("creatureMount").innerHTML = generateCreatureSVG({
     targetParts: sp.parts,
     progress,
@@ -337,6 +337,22 @@ function renderStage() {
     progress >= 1 ? `${sp.name}` : `育っている宇宙どうぶつ（→ ${sp.name}） ${Math.round(progress * 100)}%`;
 
   renderEgoPanel();
+}
+
+/* 見た目（色・パーツ）の進み具合は「愛パワーの合計」と「進化ステージ」に連動させる。
+   ステージが上がるたびに大きく変化し、次のステージまでの間も、答えるたびに
+   合計が少しずつ増える分だけ、色相などがなめらかに動いていく。 */
+function stageVisualProgress() {
+  const stage = currentStage();
+  const idx = EVOLUTION.indexOf(stage);
+  const next = EVOLUTION[idx + 1];
+  let fraction = 1;
+  if (next && next.min > stage.min) {
+    fraction = (state.total - stage.min) / (next.min - stage.min);
+    fraction = Math.max(0, Math.min(1, fraction));
+  }
+  const overall = (idx + fraction) / (EVOLUTION.length - 1);
+  return Math.max(0, Math.min(1, overall));
 }
 
 /* 「答えた設問の割合」と「愛パワーの到達度」、両方が揃って初めて完成する。

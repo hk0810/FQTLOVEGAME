@@ -498,24 +498,30 @@ function setupMusicUI() {
     }
   });
   playBtn.addEventListener("click", () => {
-    if (playing) {
-      stopTrack();
-      playBtn.textContent = "再生";
-      status.textContent = "停止中";
-      playing = false;
-    } else {
-      const trackId = select.value || MUSIC_TRACKS[0].id;
-      playTrack(trackId);
-      playBtn.textContent = "停止";
-      const t = MUSIC_TRACKS.find(t => t.id === trackId);
-      status.textContent = `▶️ 再生中：${t.name}`;
-      playing = true;
-      // 一部のブラウザでは最初の1回でコンテキストの起動が遅れることがあるため、少し待って状態を確認する
-      setTimeout(() => {
-        if (audioCtx && audioCtx.state === "suspended") {
-          status.textContent = "🔇 音声がブロックされています。もう一度「再生」を押してください。";
-        }
-      }, 400);
+    try {
+      if (playing) {
+        stopTrack();
+        playBtn.textContent = "再生";
+        status.textContent = "停止中";
+        playing = false;
+      } else {
+        const trackId = select.value || MUSIC_TRACKS[0].id;
+        const t = MUSIC_TRACKS.find(t => t.id === trackId);
+        if (!t) { status.textContent = "エラー：曲が見つかりません"; return; }
+        playTrack(trackId);
+        playBtn.textContent = "停止";
+        status.textContent = `▶️ 再生中：${t.name}`;
+        playing = true;
+        // 一部のブラウザでは最初の1回でコンテキストの起動が遅れることがあるため、少し待って状態を確認する
+        setTimeout(() => {
+          if (audioCtx && audioCtx.state === "suspended") {
+            status.textContent = "🔇 音声がブロックされています。もう一度「再生」を押してください。";
+          }
+        }, 400);
+      }
+    } catch (err) {
+      status.textContent = `エラー：${err.message}`;
+      console.error(err);
     }
   });
   volume.addEventListener("input", () => setMusicVolume(Number(volume.value)));

@@ -19,12 +19,20 @@ const CONFIG = {
 const state = {
   speciesId: null,
   total: 0,              // 13番目の指標＝愛のパワー
+  perfectCount: 0,        // love=5（満点）を選んだ回数。完全体の条件のひとつ
   ego: {},                // 12の地球人ぽい指標（key -> value）
   attributes: {},         // 選択肢の attributes を積算した生ログ（将来の拡張用）
   answeredIds: [],
   answeredCount: 0,
   seenMentors: [],
-  history: []             // 戻るボタン用の直近の回答履歴 [{qId, delta, egoShrink, mentorId}]
+  history: [],            // 戻るボタン用の直近の回答履歴 [{qId, delta, egoShrink, mentorId}]
+  showPower: false        // チェックを入れると、常に愛のパワーの増減・合計を表示する
+};
+
+const COMPLETION = {
+  perfectAnswersRequired: 130, // love=5の回答が何回必要か
+  perfectLoveValue: 5,          // 「満点」とみなすlove値
+  totalLoveRequired: 680         // 加えて、愛パワー合計が何以上必要か
 };
 
 let QUESTIONS = [];
@@ -115,12 +123,30 @@ function chooseSpecies(id) {
 function startGame() {
   document.getElementById("selectScreen").style.display = "none";
   document.getElementById("gameScreen").style.display = "";
-  document.getElementById("backBtn").addEventListener("click", () => {
-    if (confirm("直前の回答を取り消して、選び直しますか？")) undoLast();
-  });
-  document.getElementById("resetBtn").addEventListener("click", () => {
-    if (confirm("今の宇宙どうぶつや愛のパワーはすべて消えます。最初からやり直しますか？")) resetGame();
-  });
+  const backBtn = document.getElementById("backBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  if (!backBtn.dataset.bound) {
+    backBtn.addEventListener("click", () => {
+      if (confirm("直前の回答を取り消して、選び直しますか？")) undoLast();
+    });
+    backBtn.dataset.bound = "1";
+  }
+  if (!resetBtn.dataset.bound) {
+    resetBtn.addEventListener("click", () => {
+      if (confirm("今の宇宙どうぶつや愛のパワーはすべて消えます。最初からやり直しますか？")) resetGame();
+    });
+    resetBtn.dataset.bound = "1";
+  }
+  const toggle = document.getElementById("showPowerToggle");
+  toggle.checked = state.showPower;
+  if (!toggle.dataset.bound) {
+    toggle.addEventListener("change", () => {
+      state.showPower = toggle.checked;
+      saveState();
+      renderStage();
+    });
+    toggle.dataset.bound = "1";
+  }
   renderStage();
   renderNextQuestion();
 }
@@ -129,6 +155,7 @@ function startGame() {
 function resetGame() {
   state.speciesId = null;
   state.total = 0;
+  state.perfectCount = 0;
   state.ego = {};
   TRAITS.egoTraits.forEach(t => (state.ego[t.key] = TRAITS.initialEgoValue));
   state.attributes = {};
@@ -136,6 +163,7 @@ function resetGame() {
   state.answeredCount = 0;
   state.seenMentors = [];
   state.history = [];
+  state.showPower = false;
   saveState();
   renderSpeciesSelect();
 }
@@ -155,7 +183,13 @@ function renderStage() {
   const stage = currentStage();
   document.getElementById("stageName").textContent = stage.name;
   document.getElementById("stageDesc").textContent = stage.desc;
-  document.getElementById("loveTotal").textContent = state.total;
+
+  const loveEl = document.getElementById("loveTotal");
+  if (state.showPower || state.answeredCount <= 5) {
+    loveEl.textContent = state.total;
+  } else {
+    loveEl.textContent = "？？？";
+  }
 
   const sp = getSpecies();
   const progress = growProgress();
@@ -172,11 +206,14 @@ function renderStage() {
 
 /* 「答えた設問の割合」と「愛パワーの到達度」、両方が揃って初めて完成する。
    小さい方をボトルネックとして採用する。 */
+/* 完全体になる条件（二重）:
+   1. love=5（満点）の回答が perfectAnswersRequired 回以上
+   2. 愛パワーの合計が totalLoveRequired 以上
+   両方が揃って初めて100%になる（片方だけでは完成しない）。 */
 function growProgress() {
-  const questionProgress = QUESTIONS.length ? state.answeredCount / QUESTIONS.length : 0;
-  const finalStage = EVOLUTION[EVOLUTION.length - 1];
-  const loveProgress = finalStage && finalStage.min ? state.total / finalStage.min : 0;
-  return Math.max(0, Math.min(1, Math.min(questionProgress, loveProgress)));
+  const perfectProgress = state.perfectCount / COMPLETION.perfectAnswersRequired;
+  const loveProgress = state.total / COMPLETION.totalLoveRequired;
+  return Math.max(0, Math.min(1, Math.min(perfectProgress, loveProgress)));
 }
 
 function renderEgoPanel() {
@@ -229,15 +266,21 @@ function updateProgress() {
 function answer(question, choice) {
   const beforeStage = currentStage();
   const delta = (choice.attributes && choice.attributes.love) || 0;
-  const egoShrink = delta > 0 ? delta * 0.12 : 0;
+  const isPerfect = delta === COMPLETION.perfectLoveValue;
 
   state.total += delta;
+  if (isPerfect) state.perfectCount += 1;
   for (const [k, v] of Object.entries(choice.attributes || {})) {
     state.attributes[k] = (state.attributes[k] || 0) + v;
   }
-  // 12の地球人ぽい指標は、愛が育つぶんだけ少しずつ小さくなっていく（簡易モデル）
-  if (egoShrink > 0) {
-    TRAITS.egoTraits.forEach(t => { state.ego[t.key] = Math.max(0, (state.ego[t.key] ?? TRAITS.initialEgoValue) - egoShrink); });
+
+  // 地球人ぽい指標は、問題のcategoryに応じて「関係する2〜3個だけ」がバラバラに減っていく
+  const egoKeys = (TRAITS.categoryEgoMap && TRAITS.categoryEgoMap[question.category]) || TRAITS.defaultEgoKeys || [];
+  const egoShrinkAmount = delta > 0 ? delta * 0.6 : 0;
+  if (egoShrinkAmount > 0) {
+    egoKeys.forEach(key => {
+      state.ego[key] = Math.max(0, (state.ego[key] ?? TRAITS.initialEgoValue) - egoShrinkAmount);
+    });
   }
 
   state.answeredIds.push(question.id);
@@ -246,7 +289,17 @@ function answer(question, choice) {
   const afterStage = currentStage();
   const evolved = afterStage !== beforeStage;
 
-  const historyEntry = { qId: question.id, delta, egoShrink, mentorId: null };
+  const historyEntry = { qId: question.id, delta, isPerfect, egoKeys, egoShrinkAmount, mentorId: null, completionEgoSnapshot: null };
+
+  // 満点130回・愛パワー680以上の両方を満たしたら、地球人ぽい指標をすべて0にする
+  if (growProgress() >= 1) {
+    const stillRemaining = TRAITS.egoTraits.some(t => (state.ego[t.key] ?? 0) > 0);
+    if (stillRemaining) {
+      historyEntry.completionEgoSnapshot = { ...state.ego };
+      TRAITS.egoTraits.forEach(t => { state.ego[t.key] = 0; });
+    }
+  }
+
   state.history.push(historyEntry);
   saveState();
 
@@ -270,9 +323,12 @@ function undoLast() {
   if (!entry) return;
 
   state.total -= entry.delta;
-  if (entry.egoShrink > 0) {
-    TRAITS.egoTraits.forEach(t => {
-      state.ego[t.key] = Math.min(TRAITS.initialEgoValue, (state.ego[t.key] ?? TRAITS.initialEgoValue) + entry.egoShrink);
+  if (entry.isPerfect) state.perfectCount = Math.max(0, state.perfectCount - 1);
+  if (entry.completionEgoSnapshot) {
+    state.ego = { ...entry.completionEgoSnapshot };
+  } else if (entry.egoShrinkAmount > 0) {
+    entry.egoKeys.forEach(key => {
+      state.ego[key] = Math.min(TRAITS.initialEgoValue, (state.ego[key] ?? TRAITS.initialEgoValue) + entry.egoShrinkAmount);
     });
   }
   const idx = state.answeredIds.lastIndexOf(entry.qId);
@@ -312,9 +368,11 @@ function nextMentorFor(answeredCount) {
 function showFeedback({ delta, comment, evolved, stage }, onClose) {
   const overlay = document.getElementById("feedbackOverlay");
   const card = document.getElementById("feedbackCard");
+  const showPoints = state.showPower || state.answeredCount <= 5; // チェックON、または最初の5問だけ表示
+
   card.innerHTML = `
-    ${evolved ? `<p class="evolution-banner">✧ 進化しました ✧<br>${escapeHtml(stage.name)}</p>` : ""}
-    <p class="feedback-delta">愛のパワー ${delta >= 0 ? "+" : ""}${delta} ❤</p>
+    ${evolved ? `<p class="evolution-banner">✧ 進化しました ✧<br>${escapeHtml(stage.name)}<br><span class="evolution-total">愛のパワー合計 ${state.total}</span></p>` : ""}
+    ${showPoints ? `<p class="feedback-delta">愛のパワー ${delta >= 0 ? "+" : ""}${delta} ❤</p>` : ""}
     <p class="feedback-comment">${escapeHtml(comment || "")}</p>
     <button class="feedback-btn" id="feedbackNext">つづける</button>
   `;

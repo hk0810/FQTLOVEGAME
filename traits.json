@@ -1,58 +1,34 @@
 {
   "egoTraits": [
-    {
-      "key": "selfCenteredness",
-      "label": "自己中心さ"
-    },
-    {
-      "key": "arrogance",
-      "label": "傲慢さ"
-    },
-    {
-      "key": "vanity",
-      "label": "自惚れ"
-    },
-    {
-      "key": "selfishness",
-      "label": "身勝手さ"
-    },
-    {
-      "key": "showingOff",
-      "label": "見栄"
-    },
-    {
-      "key": "jealousy",
-      "label": "嫉妬"
-    },
-    {
-      "key": "stubbornness",
-      "label": "頑固さ"
-    },
-    {
-      "key": "controlling",
-      "label": "支配欲"
-    },
-    {
-      "key": "suspicion",
-      "label": "猜疑心"
-    },
-    {
-      "key": "attachment",
-      "label": "執着"
-    },
-    {
-      "key": "fear",
-      "label": "恐れ"
-    },
-    {
-      "key": "comparing",
-      "label": "比較する心"
-    }
+    { "key": "selfCenteredness", "label": "自己中心さ" },
+    { "key": "arrogance",        "label": "傲慢さ" },
+    { "key": "vanity",           "label": "自惚れ" },
+    { "key": "selfishness",      "label": "身勝手さ" },
+    { "key": "showingOff",       "label": "見栄" },
+    { "key": "jealousy",         "label": "嫉妬" },
+    { "key": "stubbornness",     "label": "頑固さ" },
+    { "key": "controlling",      "label": "支配欲" },
+    { "key": "suspicion",        "label": "猜疑心" },
+    { "key": "attachment",       "label": "執着" },
+    { "key": "fear",             "label": "恐れ" },
+    { "key": "comparing",        "label": "比較する心" }
   ],
-  "loveTrait": {
-    "key": "love",
-    "label": "愛"
-  },
+  "loveTrait": { "key": "love", "label": "愛" },
   "initialEgoValue": 10,
-  "note": "12の地球人ぽい指標は初期値10からスタートし、愛(love)が育つほど少しずつ小さくなっていく。将来的には設問ごとに個別の指標へ影響を持たせられるよう choices の attributes に各キーを追加できる。"
+
+  "categoryEgoMap": {
+    "思いやり":     ["selfCenteredness", "selfishness"],
+    "感謝":         ["vanity", "comparing"],
+    "誠実さ":       ["suspicion", "stubbornness"],
+    "勇気":         ["fear", "showingOff"],
+    "許し":         ["jealousy", "attachment"],
+    "理解":         ["stubbornness", "suspicion"],
+    "他者への愛":   ["selfCenteredness", "controlling"],
+    "自然への愛":   ["arrogance", "controlling"],
+    "自己愛":       ["comparing", "fear", "vanity"],
+    "究極の愛":     ["arrogance", "controlling", "attachment"]
+  },
+  "defaultEgoKeys": ["selfCenteredness", "arrogance"],
+
+  "note": "12の地球人ぽい指標は初期値10からスタート。設問のcategoryごとにcategoryEgoMapで定められた2〜3個の指標だけが、選択のlove値に応じて減っていく（全指標が均等には減らない）。categoryEgoMapに無いcategoryはdefaultEgoKeysを使う。すべての設問に正しく愛のある選択をして完走すると、最終的に全指標が0になるよう、ゲーム完成時(answeredCount===全問数 かつ 愛パワーが最終進化段階に到達)にapp.js側で0へ揃える処理を入れている。"
 }

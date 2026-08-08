@@ -5,7 +5,7 @@
    species.json / traits.json から読み込む。
    ========================================================= */
 
-const CACHE_VERSION = "23"; // データ更新のたびに数字を上げると、キャッシュされた古いJSONを使い続けるのを防げる
+const CACHE_VERSION = "24"; // データ更新のたびに数字を上げると、キャッシュされた古いJSONを使い続けるのを防げる
 
 const CONFIG = {
   questionFiles: ["questions.json"],
@@ -392,7 +392,7 @@ function renderNextQuestion() {
   CURRENT_QUESTION = q;
 
   document.getElementById("questionCard").style.display = "";
-  document.getElementById("questionCategory").textContent = `LEVEL ${q.level} ・ ${q.category}`;
+  document.getElementById("questionCategory").textContent = `テーマ${q.level} ・ ${q.category}`;
   document.getElementById("questionText").textContent = q.question;
   document.getElementById("replayBtn").style.display = "";
 
@@ -444,8 +444,8 @@ function updateProgress() {
   document.getElementById("progressFill").style.width = (Math.min(1, withinLevelFraction) * 100) + "%";
   document.getElementById("progressLabel").textContent =
     completedLevels >= LEVEL_TOTAL
-      ? "すべてのレベルを完了しました"
-      : `このレベル ${doneInCurrentLevel + 1} / ${totalInCurrentLevel} 問目`;
+      ? "すべてのテーマを完了しました"
+      : `このテーマ ${doneInCurrentLevel + 1} / ${totalInCurrentLevel} 問目`;
 }
 
 /* ---------------- 回答処理 ---------------- */

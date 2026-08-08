@@ -1,8 +1,13 @@
 [
-  { "id": 1, "afterQuestions": 6,  "name": "はじめの鏡", "love": 30,  "message": "あなたよりも、少しだけ大きな愛を持つ存在がいました。",
-    "intro": "まだ宇宙に生まれて、挫折も苦難も味わったことのないあなたは、自分では気づかないレベルの傲慢さや驕りも持ち合わせています。狭い世界だけで、自分は愛のパワーが強いと思うこともあります。しかし、そんな時に、出会いがありました。" },
-  { "id": 2, "afterQuestions": 14, "name": "静かな旅人", "love": 90,  "message": "多くの問いを重ねてきた、静かな光を持つ存在でした。" },
-  { "id": 3, "afterQuestions": 22, "name": "赦しの番人", "love": 180, "message": "深く傷つき、深く赦した者だけが持つ光でした。" },
-  { "id": 4, "afterQuestions": 29, "name": "無償の灯", "love": 320, "message": "見返りを求めない光は、どこまでも澄んでいました。" },
-  { "id": 5, "afterQuestions": 35, "name": "究極の光", "love": 550, "message": "とても大きな光でした。けれど、これで終わりではありません。愛には天井がないのです。" }
+  { "id": 1, "afterQuestions": 6,  "name": "はじめの鏡", "love": 33,  "message": "あなたよりも、少しだけ大きな愛を持つ存在がいました。",
+    "intro": "まだ宇宙に生まれて、挫折も苦難も味わったことのないあなたは、自分では気づかないレベルの傲慢さや驕りも持ち合わせています。狭い世界だけで、自分は愛のパワーが強いと思うこともあります。しかし、そんな時に、出会いがありました。",
+    "parts": { "body":10, "ear":4,  "eye":12, "mouth":10, "nose":0, "tail":2,  "wing":8, "horn":1, "antenna":5, "hand":9,  "foot":0, "pattern":29, "background":16, "color":27, "star":0 } },
+  { "id": 2, "afterQuestions": 14, "name": "静かな旅人", "love": 90,  "message": "多くの問いを重ねてきた、静かな光を持つ存在でした。",
+    "parts": { "body":2,  "ear":13, "eye":13, "mouth":1,  "nose":3, "tail":2,  "wing":8, "horn":6, "antenna":0, "hand":13, "foot":9, "pattern":3,  "background":7,  "color":7,  "star":9 } },
+  { "id": 3, "afterQuestions": 22, "name": "赦しの番人", "love": 180, "message": "深く傷つき、深く赦した者だけが持つ光でした。",
+    "parts": { "body":18, "ear":12, "eye":1,  "mouth":3,  "nose":0, "tail":17, "wing":2, "horn":4, "antenna":6, "hand":2,  "foot":8, "pattern":3,  "background":18, "color":39, "star":8 } },
+  { "id": 4, "afterQuestions": 29, "name": "無償の灯", "love": 320, "message": "見返りを求めない光は、どこまでも澄んでいました。",
+    "parts": { "body":5,  "ear":3,  "eye":18, "mouth":9,  "nose":3, "tail":11, "wing":1, "horn":8, "antenna":1, "hand":9,  "foot":0, "pattern":19, "background":6,  "color":63, "star":10 } },
+  { "id": 5, "afterQuestions": 35, "name": "究極の光", "love": 550, "message": "とても大きな光でした。けれど、これで終わりではありません。愛には天井がないのです。",
+    "parts": { "body":17, "ear":13, "eye":10, "mouth":7,  "nose":9, "tail":14, "wing":5, "horn":4, "antenna":3, "hand":12, "foot":2, "pattern":22, "background":7,  "color":10, "star":9 } }
 ]

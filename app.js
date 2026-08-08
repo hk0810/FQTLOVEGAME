@@ -137,6 +137,12 @@ function startGame() {
     });
     resetBtn.dataset.bound = "1";
   }
+  const saveBtn = document.getElementById("saveBtn");
+  if (!saveBtn.dataset.bound) {
+    saveBtn.addEventListener("click", saveAndPause);
+    saveBtn.dataset.bound = "1";
+  }
+  setupMusicUI();
   const toggle = document.getElementById("showPowerToggle");
   toggle.checked = state.showPower;
   if (!toggle.dataset.bound) {
@@ -149,6 +155,27 @@ function startGame() {
   }
   renderStage();
   renderNextQuestion();
+}
+
+/* 保存して一旦やめる。localStorageへの保存自体は毎回自動で行われているが、
+   ここで明示的に保存し、「安全に閉じてよい」ことをユーザーに伝える。 */
+function saveAndPause() {
+  saveState();
+  const overlay = document.getElementById("feedbackOverlay");
+  const card = document.getElementById("feedbackCard");
+  card.innerHTML = `
+    <p class="eyebrow" style="text-align:center">保存しました</p>
+    <p class="feedback-comment" style="text-align:center">
+      ここまでの記録を保存しました。<br>
+      このままアプリを閉じても大丈夫です。<br>
+      次に開いたとき、続きから始まります。
+    </p>
+    <button class="feedback-btn" id="feedbackNext">続ける</button>
+  `;
+  overlay.classList.add("show");
+  document.getElementById("feedbackNext").addEventListener("click", () => {
+    overlay.classList.remove("show");
+  }, { once: true });
 }
 
 /* すべてを消して、最初の宇宙どうぶつ選択画面に戻す */
@@ -357,9 +384,16 @@ function nextMentorFor(answeredCount) {
   const name = pick(rng, MENTOR_NAMES.prefixes) + pick(rng, MENTOR_NAMES.suffixes);
   const multiplier = 1.15 + rng() * 0.5;
   const love = Math.max(state.total + 5, Math.round(state.total * multiplier));
+  const parts = {
+    body: Math.floor(rng() * 20), ear: Math.floor(rng() * 20), eye: Math.floor(rng() * 20),
+    mouth: Math.floor(rng() * 15), nose: Math.floor(rng() * 10), tail: Math.floor(rng() * 20),
+    wing: Math.floor(rng() * 10), horn: Math.floor(rng() * 10), antenna: Math.floor(rng() * 10),
+    hand: Math.floor(rng() * 15), foot: Math.floor(rng() * 15), pattern: Math.floor(rng() * 30),
+    background: Math.floor(rng() * 20), color: Math.floor(rng() * 68), star: Math.floor(rng() * 15)
+  };
   return {
     id: `proc-${answeredCount}`,
-    name, love,
+    name, love, parts,
     message: "この道に終わりはありません。あなたより大きな愛を持つ存在は、これからも現れ続けます。"
   };
 }
@@ -387,10 +421,14 @@ function showFeedback({ delta, comment, evolved, stage }, onClose) {
 function showMentor(mentor, onClose) {
   const overlay = document.getElementById("feedbackOverlay");
   const card = document.getElementById("feedbackCard");
+  const portraitSvg = mentor.parts
+    ? generateCreatureSVG({ targetParts: mentor.parts, progress: 1, idPrefix: `mentor-${mentor.id}` })
+    : "";
   card.innerHTML = `
     ${mentor.intro ? `<p class="mentor-intro">${escapeHtml(mentor.intro)}</p>` : ""}
     <p class="eyebrow" style="text-align:center">あなたより大きな愛を持つメンターに出会いました</p>
     <p class="mentor-name">${escapeHtml(mentor.name)}</p>
+    ${portraitSvg ? `<div class="mentor-portrait">${portraitSvg}</div>` : ""}
     <div class="mentor-compare">
       <span>あなたの愛<b>${state.total}</b></span>
       <span>${escapeHtml(mentor.name)}の愛<b>${mentor.love}</b></span>
@@ -434,6 +472,41 @@ function makeRng(seed) {
   };
 }
 function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
+
+/* ---------------- 癒しの音楽 ---------------- */
+function setupMusicUI() {
+  const select = document.getElementById("musicSelect");
+  const playBtn = document.getElementById("musicPlayBtn");
+  const volume = document.getElementById("musicVolume");
+  if (select.dataset.bound) return;
+
+  MUSIC_TRACKS.forEach(t => {
+    const opt = document.createElement("option");
+    opt.value = t.id;
+    opt.textContent = t.name;
+    select.appendChild(opt);
+  });
+
+  let playing = false;
+
+  select.addEventListener("change", () => {
+    if (playing) playTrack(select.value);
+  });
+  playBtn.addEventListener("click", () => {
+    if (playing) {
+      stopTrack();
+      playBtn.textContent = "再生";
+      playing = false;
+    } else {
+      playTrack(select.value || MUSIC_TRACKS[0].id);
+      playBtn.textContent = "停止";
+      playing = true;
+    }
+  });
+  volume.addEventListener("input", () => setMusicVolume(Number(volume.value)));
+
+  select.dataset.bound = "1";
+}
 
 /* ---------------- ユーティリティ ---------------- */
 function escapeHtml(str) {

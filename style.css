@@ -562,3 +562,61 @@ footer.foot a { color: inherit; }
   margin: 0 auto 14px;
   box-shadow: 0 6px 16px rgba(0,0,0,0.25);
 }
+
+.intro-popup-text {
+  font-family: var(--serif);
+  font-size: 19px;
+  line-height: 2;
+  text-align: center;
+  color: var(--ink);
+  margin: 10px 0 26px;
+}
+
+/* 進化ポップアップ — 大きく、派手に */
+.evolution-popup {
+  text-align: center;
+  animation: evo-pop-in 0.4s ease-out;
+}
+@keyframes evo-pop-in {
+  0% { transform: scale(0.7); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.evolution-star {
+  font-size: 20px;
+  color: var(--glow-2);
+  margin: 0 0 4px;
+  letter-spacing: 0.1em;
+  animation: evo-twinkle 1.4s ease-in-out infinite;
+}
+@keyframes evo-twinkle {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.evolution-headline {
+  font-family: var(--serif);
+  font-size: 15px;
+  letter-spacing: 0.3em;
+  color: var(--ink-dim);
+  margin: 4px 0;
+}
+.evolution-stage-name {
+  font-family: var(--serif);
+  font-size: 34px;
+  font-weight: 700;
+  margin: 6px 0 14px;
+  background: linear-gradient(90deg, var(--glow-1), var(--glow-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 24px rgba(255, 157, 129, 0.5);
+}
+.evolution-total-big {
+  font-size: 16px;
+  color: var(--ink);
+  margin: 0 0 16px;
+}
+.evolution-total-big b {
+  font-size: 26px;
+  color: var(--glow-2);
+}

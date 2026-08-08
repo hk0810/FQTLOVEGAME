@@ -5,7 +5,7 @@
    species.json / traits.json から読み込む。
    ========================================================= */
 
-const CACHE_VERSION = "13"; // データ更新のたびに数字を上げると、キャッシュされた古いJSONを使い続けるのを防げる
+const CACHE_VERSION = "17"; // データ更新のたびに数字を上げると、キャッシュされた古いJSONを使い続けるのを防げる
 
 const CONFIG = {
   questionFiles: ["questions.json"],
@@ -26,6 +26,7 @@ const state = {
   speciesId: null,
   total: 0,              // 13番目の指標＝愛のパワー
   perfectCount: 0,        // love=5（満点）を選んだ回数。完全体の条件のひとつ
+  questionSeed: null,      // このセーブで使う13問の組み合わせを決める種（一度決まったら固定）
   ego: {},                // 12の地球人ぽい指標（key -> value）
   attributes: {},         // 選択肢の attributes を積算した生ログ（将来の拡張用）
   answeredIds: [],
@@ -64,6 +65,32 @@ async function init() {
     const map = new Map();
     qLists.flat().forEach(q => map.set(q.id, q));
     QUESTIONS = Array.from(map.values()).sort((a, b) => a.id - b.id);
+
+    // レベルごとに13問より多い場合は、このセーブ用に13問だけランダムに選ぶ
+    // （questionSeedは初回に一度だけ決めて保存するので、以後は同じ13問になる）
+    if (!state.questionSeed) {
+      state.questionSeed = Math.floor(Math.random() * 1e9);
+      saveState();
+    }
+    const byLevel = {};
+    QUESTIONS.forEach(q => { (byLevel[q.level] = byLevel[q.level] || []).push(q); });
+    const picked = [];
+    Object.keys(byLevel).forEach(lv => {
+      const list = byLevel[lv];
+      if (list.length <= 13) {
+        picked.push(...list);
+      } else {
+        const rng = makeRng(seedFrom("qpick", state.questionSeed, lv));
+        const shuffled = list.slice();
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(rng() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        picked.push(...shuffled.slice(0, 13));
+      }
+    });
+    QUESTIONS = picked.sort((a, b) => a.id - b.id);
+
     MAX_LOVE = QUESTIONS.reduce((sum, q) => sum + Math.max(...q.choices.map(c => (c.attributes && c.attributes.love) || 0)), 0) || 100;
 
     LEVEL_COUNTS = {};
@@ -177,7 +204,55 @@ function startGame() {
     toggle.dataset.bound = "1";
   }
   renderStage();
-  renderNextQuestion();
+  maybeShowIntroThenFirstMentor(() => renderNextQuestion());
+}
+
+/* ゲーム開始直後、まだ誰にも出会っていない場合だけ、
+   4枚の大きな文字のポップアップ→最初のメンターとの出会い、という導入を挟む */
+function maybeShowIntroThenFirstMentor(onDone) {
+  const firstMentor = MENTORS.find(m => m.afterQuestions === 0);
+  if (firstMentor && state.answeredCount === 0 && !state.seenMentors.includes(firstMentor.id)) {
+    showIntroSequence(() => {
+      state.seenMentors.push(firstMentor.id);
+      saveState();
+      showMentor(firstMentor, onDone);
+    });
+  } else {
+    onDone();
+  }
+}
+
+const INTRO_TEXTS = [
+  "まだ宇宙に生まれて間もなく、挫折も苦難も味わったことのないあなたには、自分では気づかないほどの傲慢さや驕りがありました。",
+  "狭い世界の中で、「自分は愛のパワーが強い」と思うこともあったでしょう。",
+  "そんなあなたが、ある日、ひとつの出会いを経験します。それは、",
+  "あなたの世界を大きく変えていく大切な出会いでした。"
+];
+
+function showIntroSequence(onComplete) {
+  const overlay = document.getElementById("feedbackOverlay");
+  const card = document.getElementById("feedbackCard");
+  let step = 0;
+
+  function renderStep() {
+    const isLast = step === INTRO_TEXTS.length - 1;
+    card.innerHTML = `
+      <p class="intro-popup-text">${escapeHtml(INTRO_TEXTS[step])}</p>
+      <button class="feedback-btn" id="introNext">${isLast ? "つづける" : "つぎへ"}</button>
+    `;
+    document.getElementById("introNext").addEventListener("click", () => {
+      step += 1;
+      if (step < INTRO_TEXTS.length) {
+        renderStep();
+      } else {
+        overlay.classList.remove("show");
+        onComplete();
+      }
+    }, { once: true });
+  }
+
+  overlay.classList.add("show");
+  renderStep();
 }
 
 /* 保存して一旦やめる。localStorageへの保存自体は毎回自動で行われているが、
@@ -191,7 +266,11 @@ function saveAndPause() {
     <p class="feedback-comment" style="text-align:center">
       ここまでの記録を保存しました。<br>
       このままアプリを閉じても大丈夫です。<br>
-      次に開いたとき、続きから始まります。
+      次に開いたとき、続きから始まります。<br>
+      ただし、ブラウザや端末が変わると<br>
+      データは読み込めません。<br>
+      ホーム画面に追加していれば<br>
+      ブラウザが変わらず安心です。
     </p>
     <button class="feedback-btn" id="feedbackNext">続ける</button>
   `;
@@ -465,7 +544,6 @@ function showFeedback({ delta, comment, evolved, stage }, onClose) {
   const showPoints = state.showPower || state.answeredCount <= 5; // チェックON、または最初の5問だけ表示
 
   card.innerHTML = `
-    ${evolved ? `<p class="evolution-banner">✧ 進化しました ✧<br>${escapeHtml(stage.name)}<br><span class="evolution-total">愛のパワー合計 ${state.total}</span></p>` : ""}
     ${showPoints ? `<p class="feedback-delta">愛のパワー ${delta >= 0 ? "+" : ""}${delta} ❤</p>` : ""}
     <p class="feedback-comment">${escapeHtml(comment || "")}</p>
     <button class="feedback-btn" id="feedbackNext">つづける</button>
@@ -473,8 +551,60 @@ function showFeedback({ delta, comment, evolved, stage }, onClose) {
   overlay.classList.add("show");
   document.getElementById("feedbackNext").addEventListener("click", () => {
     overlay.classList.remove("show");
+    if (evolved) {
+      showEvolutionPopup(stage, onClose);
+    } else {
+      onClose();
+    }
+  }, { once: true });
+}
+
+/* 進化の瞬間 — 独立した派手なポップアップ＋（BGMが有効なら）ファンファーレ */
+function showEvolutionPopup(stage, onClose) {
+  const overlay = document.getElementById("feedbackOverlay");
+  const card = document.getElementById("feedbackCard");
+
+  card.innerHTML = `
+    <div class="evolution-popup">
+      <p class="evolution-star">✧･ﾟ: *✧･ﾟ:*</p>
+      <p class="evolution-headline">進化しました</p>
+      <p class="evolution-stage-name">${escapeHtml(stage.name)}</p>
+      <p class="evolution-total-big">愛のパワー合計 <b>${state.total}</b></p>
+      <p class="evolution-star">✧･ﾟ: *✧･ﾟ:*</p>
+      <button class="feedback-btn" id="feedbackNext">つづける</button>
+    </div>
+  `;
+  overlay.classList.add("show");
+  playFanfareIfAllowed();
+  document.getElementById("feedbackNext").addEventListener("click", () => {
+    overlay.classList.remove("show");
     onClose();
   }, { once: true });
+}
+
+/* BGMがすでに許可（一度でも再生開始してオーディオがアンロック済み）されている場合だけ、
+   同じ音声グラフを使って短いファンファーレを鳴らす */
+function playFanfareIfAllowed() {
+  if (typeof bgm === "undefined" || !bgm.ctx) return; // BGMが一度も再生されていなければ鳴らさない
+  try {
+    const ctx = bgm.ctx;
+    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5 E5 G5 C6
+    const now = ctx.currentTime;
+    notes.forEach((freq, i) => {
+      const t = now + i * 0.12;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.18, t + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+      osc.connect(gain);
+      gain.connect(bgm.master || ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.55);
+    });
+  } catch (e) { /* 鳴らせなくても致命的ではないので無視 */ }
 }
 
 /* ---------------- メンター演出 ---------------- */

@@ -383,3 +383,31 @@ footer.foot a { color: inherit; }
   padding-bottom: 14px;
   border-bottom: 1px dashed var(--line);
 }
+
+.back-btn {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-dim);
+  font-family: var(--sans);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.back-btn:active { opacity: 0.7; }
+
+.reset-btn {
+  margin-top: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: rgba(207, 195, 217, 0.65);
+  font-family: var(--sans);
+  font-size: 10.5px;
+  cursor: pointer;
+}
+.reset-btn:active { opacity: 0.7; }

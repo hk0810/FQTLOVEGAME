@@ -23,7 +23,8 @@ const state = {
   attributes: {},         // 選択肢の attributes を積算した生ログ（将来の拡張用）
   answeredIds: [],
   answeredCount: 0,
-  seenMentors: []
+  seenMentors: [],
+  history: []             // 戻るボタン用の直近の回答履歴 [{qId, delta, egoShrink, mentorId}]
 };
 
 let QUESTIONS = [];
@@ -114,8 +115,29 @@ function chooseSpecies(id) {
 function startGame() {
   document.getElementById("selectScreen").style.display = "none";
   document.getElementById("gameScreen").style.display = "";
+  document.getElementById("backBtn").addEventListener("click", () => {
+    if (confirm("直前の回答を取り消して、選び直しますか？")) undoLast();
+  });
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    if (confirm("今の宇宙どうぶつや愛のパワーはすべて消えます。最初からやり直しますか？")) resetGame();
+  });
   renderStage();
   renderNextQuestion();
+}
+
+/* すべてを消して、最初の宇宙どうぶつ選択画面に戻す */
+function resetGame() {
+  state.speciesId = null;
+  state.total = 0;
+  state.ego = {};
+  TRAITS.egoTraits.forEach(t => (state.ego[t.key] = TRAITS.initialEgoValue));
+  state.attributes = {};
+  state.answeredIds = [];
+  state.answeredCount = 0;
+  state.seenMentors = [];
+  state.history = [];
+  saveState();
+  renderSpeciesSelect();
 }
 
 function getSpecies() {
@@ -192,6 +214,9 @@ function renderNextQuestion() {
     btn.addEventListener("click", () => answer(q, c));
     wrap.appendChild(btn);
   });
+
+  const backBtn = document.getElementById("backBtn");
+  backBtn.style.display = state.history.length > 0 ? "" : "none";
 }
 
 function updateProgress() {
@@ -204,35 +229,62 @@ function updateProgress() {
 function answer(question, choice) {
   const beforeStage = currentStage();
   const delta = (choice.attributes && choice.attributes.love) || 0;
+  const egoShrink = delta > 0 ? delta * 0.12 : 0;
 
   state.total += delta;
   for (const [k, v] of Object.entries(choice.attributes || {})) {
     state.attributes[k] = (state.attributes[k] || 0) + v;
   }
   // 12の地球人ぽい指標は、愛が育つぶんだけ少しずつ小さくなっていく（簡易モデル）
-  if (delta > 0) {
-    const shrink = delta * 0.12;
-    TRAITS.egoTraits.forEach(t => { state.ego[t.key] = Math.max(0, (state.ego[t.key] ?? TRAITS.initialEgoValue) - shrink); });
+  if (egoShrink > 0) {
+    TRAITS.egoTraits.forEach(t => { state.ego[t.key] = Math.max(0, (state.ego[t.key] ?? TRAITS.initialEgoValue) - egoShrink); });
   }
 
   state.answeredIds.push(question.id);
   state.answeredCount += 1;
-  saveState();
 
   const afterStage = currentStage();
   const evolved = afterStage !== beforeStage;
+
+  const historyEntry = { qId: question.id, delta, egoShrink, mentorId: null };
+  state.history.push(historyEntry);
+  saveState();
 
   showFeedback({ delta, comment: choice.comment, evolved, stage: afterStage }, () => {
     renderStage();
     const mentor = nextMentorFor(state.answeredCount);
     if (mentor) {
       state.seenMentors.push(mentor.id);
+      historyEntry.mentorId = mentor.id; // 戻る操作でこのメンター遭遇も取り消せるように記録
       saveState();
       showMentor(mentor, () => renderNextQuestion());
     } else {
       renderNextQuestion();
     }
   });
+}
+
+/* 直前の回答を取り消して、その設問を選び直せるようにする */
+function undoLast() {
+  const entry = state.history.pop();
+  if (!entry) return;
+
+  state.total -= entry.delta;
+  if (entry.egoShrink > 0) {
+    TRAITS.egoTraits.forEach(t => {
+      state.ego[t.key] = Math.min(TRAITS.initialEgoValue, (state.ego[t.key] ?? TRAITS.initialEgoValue) + entry.egoShrink);
+    });
+  }
+  const idx = state.answeredIds.lastIndexOf(entry.qId);
+  if (idx !== -1) state.answeredIds.splice(idx, 1);
+  state.answeredCount = Math.max(0, state.answeredCount - 1);
+  if (entry.mentorId) {
+    const mi = state.seenMentors.lastIndexOf(entry.mentorId);
+    if (mi !== -1) state.seenMentors.splice(mi, 1);
+  }
+  saveState();
+  renderStage();
+  renderNextQuestion();
 }
 
 /* 固定のメンターを使い切った後は、青天井（終わりのない）メンターを毎回生成する。
@@ -306,6 +358,7 @@ function renderEnd() {
      新しい問いが追加されるたび、あなたよりさらに大きな愛を持つ存在に出会うたび、
      この物語はまだ先へ続いていきます。`;
   document.getElementById("choices").innerHTML = "";
+  document.getElementById("backBtn").style.display = state.history.length > 0 ? "" : "none";
 }
 
 /* ---------------- 疑似乱数（メンター生成専用） ---------------- */

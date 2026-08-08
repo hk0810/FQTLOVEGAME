@@ -47,6 +47,15 @@
     </div>
 
     <div class="admin-card">
+      <p class="eyebrow">JSON検証</p>
+      <p class="stage-desc" style="text-align:left">
+        5択になっているか・ID重複・必須項目・love数値などを一括チェックします。
+      </p>
+      <button class="ghost-btn" id="validateBtn" style="width:100%">🔍 現在のデータを検証する</button>
+      <div id="validateResult" style="margin-top:10px;font-size:12.5px;line-height:1.8"></div>
+    </div>
+
+    <div class="admin-card">
       <p class="eyebrow" id="formTitle">新しい設問を追加</p>
       <label>ID（未入力なら自動採番）</label>
       <input id="fId" type="number">

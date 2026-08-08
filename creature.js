@@ -25,23 +25,51 @@ const BG_COLORS = [
   '#402A6E','#2A4E6E','#6E2A55','#2A6E4E','#6E4E2A','#4E2A6E','#2A6E6E','#6E2A2A',
   '#28304F','#4F284A','#284F3E','#4F3E28'
 ];
-const NEUTRAL_START_COLOR = '#EDE9E2'; // まだ愛が育っていない、シンプルな姿の色
 const NEUTRAL_BG_COLOR = '#1A1224';
 
 function splitVariant(index, templateCount) {
   return { t: index % templateCount, v: Math.floor(index / templateCount) };
 }
 
-function lerpColor(hexA, hexB, t) {
-  const a = hexToRgb(hexA), b = hexToRgb(hexB);
-  const r = Math.round(a.r + (b.r - a.r) * t);
-  const g = Math.round(a.g + (b.g - a.g) * t);
-  const bl = Math.round(a.b + (b.b - a.b) * t);
-  return `rgb(${r},${g},${bl})`;
-}
 function hexToRgb(hex) {
   const n = parseInt(hex.replace('#', ''), 16);
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+// hex → HSL（h:0-360, s/l:0-100）
+function hexToHsl(hex) {
+  const { r, g, b } = hexToRgb(hex);
+  const rn = r / 255, gn = g / 255, bn = b / 255;
+  const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn);
+  let h, s, l = (max + min) / 2;
+  if (max === min) { h = s = 0; }
+  else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case rn: h = (gn - bn) / d + (gn < bn ? 6 : 0); break;
+      case gn: h = (bn - rn) / d + 2; break;
+      default: h = (rn - gn) / d + 4;
+    }
+    h *= 60;
+  }
+  return { h, s: s * 100, l: l * 100 };
+}
+
+function hslCss(h, s, l) {
+  return `hsl(${((h % 360) + 360) % 360}, ${s}%, ${l}%)`;
+}
+
+/**
+ * 「反対色から本来の色へ」— 色相だけを180度分、progress(0〜1)に応じて回転させる。
+ * progress=0: 本来の色相+180°（補色）から開始
+ * progress=1: 本来の色相にぴったり一致
+ */
+function growingColor(targetHex, progress) {
+  const { h, s, l } = hexToHsl(targetHex);
+  const startHue = h + 180;
+  const currentHue = startHue + progress * 180; // 180°分だけ順方向に回転
+  return hslCss(currentHue, s, l);
 }
 
 /* ---------- 各パーツのSVGビルダー（FQT本体と同じロジック） ---------- */
@@ -209,25 +237,25 @@ function buildFootSVG(footIndex, color) {
 
 /* =========================================================
    進化に応じたパーツ解放スケジュール
-   愛が育つ(進化ステージが上がる)ほど、パーツが1つずつ現れ、
-   色もシンプルな色から「人氣者」本来の色へ近づいていく。
+   progress(0〜1)は「答えた設問の割合」と「愛パワーの到達度」の
+   小さい方（＝両方揃って初めて完成する）で決まる。
+   130問構成であれば、実質130段階の細かい変化になる。
    ========================================================= */
 const UNLOCK_SCHEDULE = [
-  // stageProgress(0〜1) に到達したら、そのパーツを表示する
   { part: "body",       at: 0 },
   { part: "eye",        at: 0 },
   { part: "mouth",      at: 0 },
-  { part: "nose",       at: 0.10 },
-  { part: "ear",        at: 0.20 },
-  { part: "hand",       at: 0.28 },
-  { part: "foot",       at: 0.36 },
-  { part: "pattern",    at: 0.45 },
-  { part: "tail",       at: 0.54 },
-  { part: "background", at: 0.60 },
-  { part: "horn",       at: 0.70 },
-  { part: "antenna",    at: 0.80 },
+  { part: "nose",       at: 0.08 },
+  { part: "ear",        at: 0.16 },
+  { part: "hand",       at: 0.24 },
+  { part: "foot",       at: 0.32 },
+  { part: "pattern",    at: 0.40 },
+  { part: "tail",       at: 0.50 },
+  { part: "background", at: 0.55 },
+  { part: "horn",       at: 0.68 },
+  { part: "antenna",    at: 0.78 },
   { part: "wing",       at: 0.90 },
-  { part: "star",       at: 0.30 } // 星は早めから少しずつ増える
+  { part: "star",       at: 0.20 }
 ];
 
 function isUnlocked(part, progress) {
@@ -237,21 +265,22 @@ function isUnlocked(part, progress) {
 
 /**
  * targetParts: 人氣者13体のうちの1体分の parts オブジェクト（species.json）
- * stageIndex / stageCount: 現在の進化ステージ（0始まり）と、進化ステージ総数
+ * progress: 0〜1。「答えた設問の割合」と「愛パワーの到達度」の小さい方。
+ *           130問構成なら、実質130段階できめ細かく変化する。
  */
-function generateCreatureSVG({ targetParts, stageIndex = 0, stageCount = 12, idPrefix = "c" }) {
-  const progress = stageCount > 1 ? stageIndex / (stageCount - 1) : 1;
+function generateCreatureSVG({ targetParts, progress = 0, idPrefix = "c" }) {
+  progress = Math.max(0, Math.min(1, progress));
 
   const targetBody = BODY_COLORS[targetParts.color % BODY_COLORS.length];
-  const bodyColor = progress >= 1 ? targetBody : lerpColor(NEUTRAL_START_COLOR, targetBody, Math.min(1, progress * 1.15));
+  const bodyColor = growingColor(targetBody, progress);
   const patternColor = PATTERN_COLORS[targetParts.pattern % PATTERN_COLORS.length];
   const targetBg = BG_COLORS[targetParts.background % BG_COLORS.length];
   const bgColor = isUnlocked("background", progress)
-    ? lerpColor(NEUTRAL_BG_COLOR, targetBg, Math.min(1, (progress - 0.6) / 0.4 + 0.3))
+    ? growingColor(targetBg, Math.min(1, (progress - 0.55) / 0.45))
     : NEUTRAL_BG_COLOR;
 
   const starCount = isUnlocked("star", progress)
-    ? Math.min(targetParts.star, Math.round((targetParts.star + 1) * Math.min(1, progress * 1.4)))
+    ? Math.min(targetParts.star, Math.round((targetParts.star + 1) * Math.min(1, progress * 1.3)))
     : 0;
 
   let svg = "";

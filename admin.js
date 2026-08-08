@@ -23,12 +23,73 @@ document.getElementById("enterBtn").addEventListener("click", async () => {
   baseQuestions = await fetch("questions.json").then(r => r.json());
   renderList();
   resetForm();
+  runValidation(false);
 });
 
 document.getElementById("addChoiceBtn").addEventListener("click", () => addChoiceRow());
 document.getElementById("clearBtn").addEventListener("click", resetForm);
 document.getElementById("saveBtn").addEventListener("click", saveQuestion);
 document.getElementById("exportBtn").addEventListener("click", exportJson);
+document.getElementById("validateBtn").addEventListener("click", () => runValidation(true));
+
+/* =========================================================
+   JSONバリデーション
+   ・idの存在／重複チェック
+   ・level / category / question の存在チェック
+   ・choicesが必ず5個で、A〜Eが揃っているか
+   ・text / attributes.love(数値) / comment の存在チェック
+   ========================================================= */
+function validateQuestions(list) {
+  const errors = []; // { id, messages: [] }
+  const seenIds = new Set();
+
+  list.forEach((q, idx) => {
+    const msgs = [];
+    const label = (q && q.id !== undefined) ? `#${q.id}` : `(${idx + 1}番目・IDなし)`;
+
+    if (q.id === undefined || q.id === null || q.id === "") msgs.push("idがありません");
+    else if (seenIds.has(q.id)) msgs.push(`idが重複しています（${q.id}）`);
+    else seenIds.add(q.id);
+
+    if (q.level === undefined || q.level === null) msgs.push("levelがありません");
+    if (!q.category) msgs.push("categoryがありません");
+    if (!q.question) msgs.push("questionがありません");
+
+    if (!Array.isArray(q.choices)) {
+      msgs.push("choicesが配列ではありません");
+    } else {
+      if (q.choices.length !== 5) msgs.push(`選択肢が5個ではありません（現在${q.choices.length}個）`);
+      const expectedLetters = ["A", "B", "C", "D", "E"];
+      q.choices.forEach((c, i) => {
+        const pos = expectedLetters[i] || `${i + 1}番目`;
+        if (i < 5 && c.id !== expectedLetters[i]) msgs.push(`${pos}番目の選択肢のidが「${expectedLetters[i]}」になっていません（実際: ${c.id}）`);
+        if (!c.text) msgs.push(`選択肢${c.id || pos}のtextがありません`);
+        if (!c.attributes || typeof c.attributes.love !== "number") msgs.push(`選択肢${c.id || pos}のattributes.loveが数値ではありません`);
+        if (!c.comment) msgs.push(`選択肢${c.id || pos}のcommentがありません`);
+      });
+    }
+
+    if (msgs.length) errors.push({ id: label, messages: msgs });
+  });
+
+  return { valid: errors.length === 0, errors, total: list.length };
+}
+
+function runValidation(showAlert) {
+  const result = validateQuestions(mergedQuestions());
+  const box = document.getElementById("validateResult");
+  if (result.valid) {
+    box.innerHTML = `<p style="color:#9ee6b0">✓ 全${result.total}問、問題は見つかりませんでした（5択・必須項目・ID重複すべてOK）。</p>`;
+  } else {
+    let html = `<p style="color:#ffb4a2">✕ ${result.errors.length}件の問題があります（全${result.total}問中）</p>`;
+    result.errors.forEach(e => {
+      html += `<p style="margin-top:6px"><b>${e.id}</b><br>${e.messages.map(m => "・" + escapeHtml(m)).join("<br>")}</p>`;
+    });
+    box.innerHTML = html;
+  }
+  return result;
+}
+
 
 function loadDraft() {
   try { return JSON.parse(localStorage.getItem(DRAFT_KEY)) || {}; }
@@ -77,7 +138,7 @@ function resetForm() {
   document.getElementById("fCategory").value = "";
   document.getElementById("fQuestion").value = "";
   document.getElementById("choicesWrap").innerHTML = "";
-  addChoiceRow("A"); addChoiceRow("B");
+  ["A", "B", "C", "D", "E"].forEach(l => addChoiceRow(l));
 }
 
 function addChoiceRow(letter, text = "", love = 0, comment = "") {
@@ -142,6 +203,10 @@ function saveQuestion() {
     alert("問題文と、少なくとも1つの選択肢を入力してください。");
     return;
   }
+  if (choices.length !== 5) {
+    const proceed = confirm(`選択肢が${choices.length}個です。このゲームの設問は5択が基本方針です。このまま保存しますか？`);
+    if (!proceed) return;
+  }
 
   draft[id] = {
     id,
@@ -156,6 +221,11 @@ function saveQuestion() {
 }
 
 function exportJson() {
+  const result = runValidation(false);
+  if (!result.valid) {
+    const proceed = confirm(`検証で${result.errors.length}件の問題が見つかりました。このまま書き出しますか？\n（詳細は検証結果の欄をご確認ください）`);
+    if (!proceed) return;
+  }
   const all = mergedQuestions();
   const blob = new Blob([JSON.stringify(all, null, 2)], { type: "application/json" });
   const a = document.createElement("a");

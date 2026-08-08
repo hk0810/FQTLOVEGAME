@@ -250,20 +250,20 @@ body {
 }
 @keyframes fadein { to { opacity: 1; } }
 
-/* rival */
-.rival-name {
+/* mentor */
+.mentor-name {
   font-family: var(--serif);
   font-size: 20px;
   margin: 6px 0 2px;
 }
-.rival-compare {
+.mentor-compare {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
   color: var(--ink-dim);
   margin: 16px 0 6px;
 }
-.rival-compare b { color: var(--ink); font-size: 15px; display: block; }
+.mentor-compare b { color: var(--ink); font-size: 15px; display: block; }
 
 /* end state */
 .end-note {
@@ -364,4 +364,22 @@ footer.foot a { color: inherit; }
   color: var(--ink-dim);
   margin: 2px 0 0;
   letter-spacing: 0.04em;
+}
+
+.mentor-asks {
+  font-family: var(--serif);
+  font-size: 13px;
+  color: var(--glow-2);
+  text-align: center;
+  margin: 4px 0 18px;
+}
+
+.mentor-intro {
+  font-size: 12.5px;
+  line-height: 1.9;
+  color: var(--ink-dim);
+  text-align: left;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed var(--line);
 }

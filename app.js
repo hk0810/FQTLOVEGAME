@@ -1,18 +1,18 @@
 /* =========================================================
    愛を育てるゲーム — ゲームエンジン
    このファイルには「設問」や「宇宙どうぶつの種族データ」を書き込まない。
-   すべて questions.json / evolution.json / rivals.json /
+   すべて questions.json / evolution.json / mentors.json /
    species.json / traits.json から読み込む。
    ========================================================= */
 
 const CONFIG = {
   questionFiles: ["questions.json"],
   evolutionFile: "evolution.json",
-  rivalsFile: "rivals.json",
+  mentorsFile: "mentors.json",
   speciesFile: "species.json",
   traitsFile: "traits.json",
-  rivalNamesFile: "rival-names.json",
-  proceduralRivalInterval: 6, // 固定ライバルを使い切った後、何問ごとに新しい相手が現れるか
+  mentorNamesFile: "mentor-names.json",
+  proceduralMentorInterval: 6, // 固定メンターを使い切った後、何問ごとに新しい相手が現れるか
   storageKey: "love_game_state_v2"
 };
 
@@ -23,15 +23,15 @@ const state = {
   attributes: {},         // 選択肢の attributes を積算した生ログ（将来の拡張用）
   answeredIds: [],
   answeredCount: 0,
-  seenRivals: []
+  seenMentors: []
 };
 
 let QUESTIONS = [];
 let EVOLUTION = [];
-let RIVALS = [];
+let MENTORS = [];
 let SPECIES = [];
 let TRAITS = null;
-let RIVAL_NAMES = null;
+let MENTOR_NAMES = null;
 let MAX_LOVE = 100; // questions.json から算出する理論上の最大値
 
 init();
@@ -47,10 +47,10 @@ async function init() {
     MAX_LOVE = QUESTIONS.reduce((sum, q) => sum + Math.max(...q.choices.map(c => (c.attributes && c.attributes.love) || 0)), 0) || 100;
 
     EVOLUTION = (await fetch(CONFIG.evolutionFile).then(r => r.json())).sort((a, b) => a.min - b.min);
-    RIVALS = (await fetch(CONFIG.rivalsFile).then(r => r.json())).sort((a, b) => a.afterQuestions - b.afterQuestions);
+    MENTORS = (await fetch(CONFIG.mentorsFile).then(r => r.json())).sort((a, b) => a.afterQuestions - b.afterQuestions);
     SPECIES = await fetch(CONFIG.speciesFile).then(r => r.json());
     TRAITS = await fetch(CONFIG.traitsFile).then(r => r.json());
-    RIVAL_NAMES = await fetch(CONFIG.rivalNamesFile).then(r => r.json());
+    MENTOR_NAMES = await fetch(CONFIG.mentorNamesFile).then(r => r.json());
 
     if (Object.keys(state.ego).length === 0) {
       TRAITS.egoTraits.forEach(t => (state.ego[t.key] = TRAITS.initialEgoValue));
@@ -98,9 +98,9 @@ function renderSpeciesSelect() {
     card.addEventListener("click", () => chooseSpecies(sp.id));
     grid.appendChild(card);
 
-    // 選択画面ではまだ「とてもシンプルな姿」（進化ステージ0）だけを見せる
+    // 選択画面ではまだ「とてもシンプルな姿」（進化前）だけを見せる
     document.getElementById(`preview-${sp.id}`).innerHTML = generateCreatureSVG({
-      targetParts: sp.parts, stageIndex: 0, stageCount: EVOLUTION.length, idPrefix: `pv${sp.id}`
+      targetParts: sp.parts, progress: 0, idPrefix: `pv${sp.id}`
     });
   });
 }
@@ -136,17 +136,25 @@ function renderStage() {
   document.getElementById("loveTotal").textContent = state.total;
 
   const sp = getSpecies();
-  const stageIndex = EVOLUTION.indexOf(stage);
+  const progress = growProgress();
   document.getElementById("creatureMount").innerHTML = generateCreatureSVG({
     targetParts: sp.parts,
-    stageIndex,
-    stageCount: EVOLUTION.length,
+    progress,
     idPrefix: "main"
   });
   document.getElementById("creatureName").textContent =
-    stageIndex >= EVOLUTION.length - 1 ? `${sp.name}` : `育っている宇宙どうぶつ（→ ${sp.name}）`;
+    progress >= 1 ? `${sp.name}` : `育っている宇宙どうぶつ（→ ${sp.name}） ${Math.round(progress * 100)}%`;
 
   renderEgoPanel();
+}
+
+/* 「答えた設問の割合」と「愛パワーの到達度」、両方が揃って初めて完成する。
+   小さい方をボトルネックとして採用する。 */
+function growProgress() {
+  const questionProgress = QUESTIONS.length ? state.answeredCount / QUESTIONS.length : 0;
+  const finalStage = EVOLUTION[EVOLUTION.length - 1];
+  const loveProgress = finalStage && finalStage.min ? state.total / finalStage.min : 0;
+  return Math.max(0, Math.min(1, Math.min(questionProgress, loveProgress)));
 }
 
 function renderEgoPanel() {
@@ -216,29 +224,29 @@ function answer(question, choice) {
 
   showFeedback({ delta, comment: choice.comment, evolved, stage: afterStage }, () => {
     renderStage();
-    const rival = nextRivalFor(state.answeredCount);
-    if (rival) {
-      state.seenRivals.push(rival.id);
+    const mentor = nextMentorFor(state.answeredCount);
+    if (mentor) {
+      state.seenMentors.push(mentor.id);
       saveState();
-      showRival(rival, () => renderNextQuestion());
+      showMentor(mentor, () => renderNextQuestion());
     } else {
       renderNextQuestion();
     }
   });
 }
 
-/* 固定のライバルを使い切った後は、青天井（終わりのない）ライバルを毎回生成する。
+/* 固定のメンターを使い切った後は、青天井（終わりのない）メンターを毎回生成する。
    ドラゴンボールの「上には上がいる」の発想: 誰か一人を「最強」として固定しない。 */
-function nextRivalFor(answeredCount) {
-  const fixed = RIVALS.find(r => r.afterQuestions === answeredCount && !state.seenRivals.includes(r.id));
+function nextMentorFor(answeredCount) {
+  const fixed = MENTORS.find(r => r.afterQuestions === answeredCount && !state.seenMentors.includes(r.id));
   if (fixed) return fixed;
 
-  const lastFixed = RIVALS[RIVALS.length - 1];
+  const lastFixed = MENTORS[MENTORS.length - 1];
   if (!lastFixed || answeredCount <= lastFixed.afterQuestions) return null;
-  if ((answeredCount - lastFixed.afterQuestions) % CONFIG.proceduralRivalInterval !== 0) return null;
+  if ((answeredCount - lastFixed.afterQuestions) % CONFIG.proceduralMentorInterval !== 0) return null;
 
-  const rng = makeRng(seedFrom("rival", state.speciesId, answeredCount, state.total));
-  const name = pick(rng, RIVAL_NAMES.prefixes) + pick(rng, RIVAL_NAMES.suffixes);
+  const rng = makeRng(seedFrom("mentor", state.speciesId, answeredCount, state.total));
+  const name = pick(rng, MENTOR_NAMES.prefixes) + pick(rng, MENTOR_NAMES.suffixes);
   const multiplier = 1.15 + rng() * 0.5;
   const love = Math.max(state.total + 5, Math.round(state.total * multiplier));
   return {
@@ -265,19 +273,21 @@ function showFeedback({ delta, comment, evolved, stage }, onClose) {
   }, { once: true });
 }
 
-/* ---------------- ライバル（対戦相手）演出 ---------------- */
-function showRival(rival, onClose) {
+/* ---------------- メンター演出 ---------------- */
+function showMentor(mentor, onClose) {
   const overlay = document.getElementById("feedbackOverlay");
   const card = document.getElementById("feedbackCard");
   card.innerHTML = `
-    <p class="eyebrow" style="text-align:center">あなたより大きな愛を持つ存在</p>
-    <p class="rival-name">${escapeHtml(rival.name)}</p>
-    <div class="rival-compare">
+    ${mentor.intro ? `<p class="mentor-intro">${escapeHtml(mentor.intro)}</p>` : ""}
+    <p class="eyebrow" style="text-align:center">あなたより大きな愛を持つメンターに出会いました</p>
+    <p class="mentor-name">${escapeHtml(mentor.name)}</p>
+    <div class="mentor-compare">
       <span>あなたの愛<b>${state.total}</b></span>
-      <span>${escapeHtml(rival.name)}の愛<b>${rival.love}</b></span>
+      <span>${escapeHtml(mentor.name)}の愛<b>${mentor.love}</b></span>
     </div>
-    <p class="feedback-comment">${escapeHtml(rival.message)}</p>
-    <button class="feedback-btn" id="feedbackNext">もっと愛を育てる</button>
+    <p class="feedback-comment">${escapeHtml(mentor.message)}</p>
+    <p class="mentor-asks">その${escapeHtml(mentor.name)}から、そっと問いかけられます。</p>
+    <button class="feedback-btn" id="feedbackNext">問いに答える</button>
   `;
   overlay.classList.add("show");
   document.getElementById("feedbackNext").addEventListener("click", () => {
@@ -298,7 +308,7 @@ function renderEnd() {
   document.getElementById("choices").innerHTML = "";
 }
 
-/* ---------------- 疑似乱数（ライバル生成専用） ---------------- */
+/* ---------------- 疑似乱数（メンター生成専用） ---------------- */
 function seedFrom(...parts) {
   const str = parts.join("|");
   let h = 2166136261;

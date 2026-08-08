@@ -620,3 +620,9 @@ footer.foot a { color: inherit; }
   font-size: 26px;
   color: var(--glow-2);
 }
+
+.evolution-threshold {
+  font-size: 13px;
+  color: var(--glow-1);
+  margin: 0 0 10px;
+}

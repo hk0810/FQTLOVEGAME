@@ -5,7 +5,7 @@
    species.json / traits.json から読み込む。
    ========================================================= */
 
-const CACHE_VERSION = "17"; // データ更新のたびに数字を上げると、キャッシュされた古いJSONを使い続けるのを防げる
+const CACHE_VERSION = "20"; // データ更新のたびに数字を上げると、キャッシュされた古いJSONを使い続けるのを防げる
 
 const CONFIG = {
   questionFiles: ["questions.json"],
@@ -209,13 +209,18 @@ function startGame() {
 
 /* ゲーム開始直後、まだ誰にも出会っていない場合だけ、
    4枚の大きな文字のポップアップ→最初のメンターとの出会い、という導入を挟む */
+function mentorLoveFor(answeredCount) {
+  // メンターの愛パワーは常に「これまでこなした設問数 × 5 + 13」で決まる
+  return answeredCount * 5 + 13;
+}
+
 function maybeShowIntroThenFirstMentor(onDone) {
   const firstMentor = MENTORS.find(m => m.afterQuestions === 0);
   if (firstMentor && state.answeredCount === 0 && !state.seenMentors.includes(firstMentor.id)) {
     showIntroSequence(() => {
       state.seenMentors.push(firstMentor.id);
       saveState();
-      showMentor(firstMentor, onDone);
+      showMentor({ ...firstMentor, love: mentorLoveFor(0) }, onDone);
     });
   } else {
     onDone();
@@ -391,8 +396,6 @@ function renderNextQuestion() {
 }
 
 function updateProgress() {
-  // 進捗バーの「見た目の長さ」は13レベル全体での進み具合、
-  // ラベルの文字は「今のレベルの中で何問目か」を示す（LEVEL自体は設問カードの上に別途表示）
   let completedLevels = 0;
   let currentLevel = LEVEL_TOTAL;
   let currentLevelFraction = 0;
@@ -419,8 +422,9 @@ function updateProgress() {
     }
   }
 
-  const overall = Math.min(1, (completedLevels + currentLevelFraction) / LEVEL_TOTAL);
-  document.getElementById("progressFill").style.width = (overall * 100) + "%";
+  // バーも文字も「今のレベルの中で何問目か」で揃える（LEVEL自体は設問カードの上に別途表示）
+  const withinLevelFraction = totalInCurrentLevel > 0 ? doneInCurrentLevel / totalInCurrentLevel : (completedLevels >= LEVEL_TOTAL ? 1 : 0);
+  document.getElementById("progressFill").style.width = (Math.min(1, withinLevelFraction) * 100) + "%";
   document.getElementById("progressLabel").textContent =
     completedLevels >= LEVEL_TOTAL
       ? "すべてのレベルを完了しました"
@@ -511,8 +515,7 @@ function undoLast() {
 /* 固定のメンターを使い切った後は、青天井（終わりのない）メンターを毎回生成する。
    ドラゴンボールの「上には上がいる」の発想: 誰か一人を「最強」として固定しない。 */
 function nextMentorFor(answeredCount) {
-  // メンターの愛パワーは常に「これまでこなした設問数 × 5 + 13」で決まる
-  const mentorLove = answeredCount * 5 + 13;
+  const mentorLove = mentorLoveFor(answeredCount);
 
   const fixed = MENTORS.find(r => r.afterQuestions === answeredCount && !state.seenMentors.includes(r.id));
   if (fixed) return { ...fixed, love: mentorLove };
@@ -569,6 +572,7 @@ function showEvolutionPopup(stage, onClose) {
       <p class="evolution-star">✧･ﾟ: *✧･ﾟ:*</p>
       <p class="evolution-headline">進化しました</p>
       <p class="evolution-stage-name">${escapeHtml(stage.name)}</p>
+      <p class="evolution-threshold">愛のパワーが ${stage.min} を超えました！</p>
       <p class="evolution-total-big">愛のパワー合計 <b>${state.total}</b></p>
       <p class="evolution-star">✧･ﾟ: *✧･ﾟ:*</p>
       <button class="feedback-btn" id="feedbackNext">つづける</button>

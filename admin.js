@@ -20,7 +20,7 @@ document.getElementById("enterBtn").addEventListener("click", async () => {
   }
   document.getElementById("gate").style.display = "none";
   document.getElementById("panel").style.display = "";
-  baseQuestions = await fetch("questions.json").then(r => r.json());
+  baseQuestions = await fetch(`questions.json?v=${Date.now()}`).then(r => r.json());
   renderList();
   resetForm();
   runValidation(false);

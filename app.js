@@ -5,6 +5,8 @@
    species.json / traits.json から読み込む。
    ========================================================= */
 
+const CACHE_VERSION = "13"; // データ更新のたびに数字を上げると、キャッシュされた古いJSONを使い続けるのを防げる
+
 const CONFIG = {
   questionFiles: ["questions.json"],
   evolutionFile: "evolution.json",
@@ -15,6 +17,10 @@ const CONFIG = {
   proceduralMentorInterval: 6, // 固定メンターを使い切った後、何問ごとに新しい相手が現れるか
   storageKey: "love_game_state_v2"
 };
+
+function withCacheBust(url) {
+  return `${url}?v=${CACHE_VERSION}`;
+}
 
 const state = {
   speciesId: null,
@@ -38,6 +44,7 @@ const COMPLETION = {
 };
 
 let QUESTIONS = [];
+let CURRENT_QUESTION = null; // 「もう一度読み上げる」ボタン用に、今表示中の設問を覚えておく
 let EVOLUTION = [];
 let MENTORS = [];
 let SPECIES = [];
@@ -53,7 +60,7 @@ async function init() {
   loadState();
 
   try {
-    const qLists = await Promise.all(CONFIG.questionFiles.map(f => fetch(f).then(r => r.json())));
+    const qLists = await Promise.all(CONFIG.questionFiles.map(f => fetch(withCacheBust(f)).then(r => r.json())));
     const map = new Map();
     qLists.flat().forEach(q => map.set(q.id, q));
     QUESTIONS = Array.from(map.values()).sort((a, b) => a.id - b.id);
@@ -63,11 +70,11 @@ async function init() {
     QUESTIONS.forEach(q => { LEVEL_COUNTS[q.level] = (LEVEL_COUNTS[q.level] || 0) + 1; });
     LEVEL_TOTAL = Object.keys(LEVEL_COUNTS).length || 13;
 
-    EVOLUTION = (await fetch(CONFIG.evolutionFile).then(r => r.json())).sort((a, b) => a.min - b.min);
-    MENTORS = (await fetch(CONFIG.mentorsFile).then(r => r.json())).sort((a, b) => a.afterQuestions - b.afterQuestions);
-    SPECIES = await fetch(CONFIG.speciesFile).then(r => r.json());
-    TRAITS = await fetch(CONFIG.traitsFile).then(r => r.json());
-    MENTOR_NAMES = await fetch(CONFIG.mentorNamesFile).then(r => r.json());
+    EVOLUTION = (await fetch(withCacheBust(CONFIG.evolutionFile)).then(r => r.json())).sort((a, b) => a.min - b.min);
+    MENTORS = (await fetch(withCacheBust(CONFIG.mentorsFile)).then(r => r.json())).sort((a, b) => a.afterQuestions - b.afterQuestions);
+    SPECIES = await fetch(withCacheBust(CONFIG.speciesFile)).then(r => r.json());
+    TRAITS = await fetch(withCacheBust(CONFIG.traitsFile)).then(r => r.json());
+    MENTOR_NAMES = await fetch(withCacheBust(CONFIG.mentorNamesFile)).then(r => r.json());
 
     if (Object.keys(state.ego).length === 0) {
       TRAITS.egoTraits.forEach(t => (state.ego[t.key] = TRAITS.initialEgoValue));
@@ -152,6 +159,13 @@ function startGame() {
   }
   setupMusicUI();
   setupReadAloudUI();
+  const replayBtn = document.getElementById("replayBtn");
+  if (!replayBtn.dataset.bound) {
+    replayBtn.addEventListener("click", () => {
+      if (CURRENT_QUESTION) speakQuestion(CURRENT_QUESTION);
+    });
+    replayBtn.dataset.bound = "1";
+  }
   const toggle = document.getElementById("showPowerToggle");
   toggle.checked = state.showPower;
   if (!toggle.dataset.bound) {
@@ -274,10 +288,12 @@ function renderNextQuestion() {
   updateProgress();
   const q = nextUnanswered();
   if (!q) { renderEnd(); return; }
+  CURRENT_QUESTION = q;
 
   document.getElementById("questionCard").style.display = "";
   document.getElementById("questionCategory").textContent = `LEVEL ${q.level} ・ ${q.category}`;
   document.getElementById("questionText").textContent = q.question;
+  document.getElementById("replayBtn").style.display = "";
 
   if (state.readAloud) speakQuestion(q);
 
@@ -296,10 +312,13 @@ function renderNextQuestion() {
 }
 
 function updateProgress() {
-  // 165問という生の数字は表示せず、13レベルの中でどこまで進んだかを見せる
+  // 進捗バーの「見た目の長さ」は13レベル全体での進み具合、
+  // ラベルの文字は「今のレベルの中で何問目か」を示す（LEVEL自体は設問カードの上に別途表示）
   let completedLevels = 0;
   let currentLevel = LEVEL_TOTAL;
   let currentLevelFraction = 0;
+  let doneInCurrentLevel = 0;
+  let totalInCurrentLevel = 0;
 
   for (let lv = 1; lv <= LEVEL_TOTAL; lv++) {
     const totalInLevel = LEVEL_COUNTS[lv] || 0;
@@ -310,15 +329,23 @@ function updateProgress() {
     } else {
       currentLevel = lv;
       currentLevelFraction = doneInLevel / totalInLevel;
+      doneInCurrentLevel = doneInLevel;
+      totalInCurrentLevel = totalInLevel;
       break;
     }
-    if (lv === LEVEL_TOTAL) currentLevel = LEVEL_TOTAL;
+    if (lv === LEVEL_TOTAL) {
+      currentLevel = LEVEL_TOTAL;
+      doneInCurrentLevel = totalInLevel;
+      totalInCurrentLevel = totalInLevel;
+    }
   }
 
   const overall = Math.min(1, (completedLevels + currentLevelFraction) / LEVEL_TOTAL);
   document.getElementById("progressFill").style.width = (overall * 100) + "%";
   document.getElementById("progressLabel").textContent =
-    completedLevels >= LEVEL_TOTAL ? `${LEVEL_TOTAL} / ${LEVEL_TOTAL} 完了` : `LEVEL ${currentLevel} / ${LEVEL_TOTAL}`;
+    completedLevels >= LEVEL_TOTAL
+      ? "すべてのレベルを完了しました"
+      : `このレベル ${doneInCurrentLevel + 1} / ${totalInCurrentLevel} 問目`;
 }
 
 /* ---------------- 回答処理 ---------------- */
@@ -335,7 +362,7 @@ function answer(question, choice) {
 
   // 地球人ぽい指標は、問題のcategoryに応じて「関係する2〜3個だけ」がバラバラに減っていく
   const egoKeys = (TRAITS.categoryEgoMap && TRAITS.categoryEgoMap[question.category]) || TRAITS.defaultEgoKeys || [];
-  const egoShrinkAmount = delta > 0 ? delta * 0.6 : 0;
+  const egoShrinkAmount = delta > 0 ? delta * 0.15 : 0;
   if (egoShrinkAmount > 0) {
     egoKeys.forEach(key => {
       state.ego[key] = Math.max(0, (state.ego[key] ?? TRAITS.initialEgoValue) - egoShrinkAmount);
@@ -405,8 +432,11 @@ function undoLast() {
 /* 固定のメンターを使い切った後は、青天井（終わりのない）メンターを毎回生成する。
    ドラゴンボールの「上には上がいる」の発想: 誰か一人を「最強」として固定しない。 */
 function nextMentorFor(answeredCount) {
+  // メンターの愛パワーは常に「これまでこなした設問数 × 5 + 13」で決まる
+  const mentorLove = answeredCount * 5 + 13;
+
   const fixed = MENTORS.find(r => r.afterQuestions === answeredCount && !state.seenMentors.includes(r.id));
-  if (fixed) return fixed;
+  if (fixed) return { ...fixed, love: mentorLove };
 
   const lastFixed = MENTORS[MENTORS.length - 1];
   if (!lastFixed || answeredCount <= lastFixed.afterQuestions) return null;
@@ -414,8 +444,6 @@ function nextMentorFor(answeredCount) {
 
   const rng = makeRng(seedFrom("mentor", state.speciesId, answeredCount, state.total));
   const name = pick(rng, MENTOR_NAMES.prefixes) + pick(rng, MENTOR_NAMES.suffixes);
-  const multiplier = 1.15 + rng() * 0.5;
-  const love = Math.max(state.total + 5, Math.round(state.total * multiplier));
   const parts = {
     body: Math.floor(rng() * 20), ear: Math.floor(rng() * 20), eye: Math.floor(rng() * 20),
     mouth: Math.floor(rng() * 15), nose: Math.floor(rng() * 10), tail: Math.floor(rng() * 20),
@@ -425,7 +453,7 @@ function nextMentorFor(answeredCount) {
   };
   return {
     id: `proc-${answeredCount}`,
-    name, love, parts,
+    name, love: mentorLove, parts,
     message: "この道に終わりはありません。あなたより大きな愛を持つ存在は、これからも現れ続けます。"
   };
 }
@@ -487,6 +515,8 @@ function renderEnd() {
      この物語はまだ先へ続いていきます。`;
   document.getElementById("choices").innerHTML = "";
   document.getElementById("backBtn").style.display = state.history.length > 0 ? "" : "none";
+  document.getElementById("replayBtn").style.display = "none";
+  CURRENT_QUESTION = null;
 }
 
 /* ---------------- 疑似乱数（メンター生成専用） ---------------- */

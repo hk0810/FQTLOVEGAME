@@ -114,11 +114,22 @@ body {
 .love-total b { color: var(--glow-2); font-weight: 600; }
 
 /* ---------- progress ---------- */
+.progress-wrap {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.progress-caption {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: rgba(207, 195, 217, 0.55);
+  margin: 0 0 6px;
+}
 .progress-track {
   width: 100%;
-  height: 3px;
+  height: 5px;
   background: var(--line);
-  border-radius: 2px;
+  border-radius: 3px;
   overflow: hidden;
 }
 .progress-fill {
@@ -450,7 +461,7 @@ footer.foot a { color: inherit; }
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  margin-top: 8px;
+  margin: 10px 0 16px;
 }
 
 /* FQT LIFE COUNTERと同じ見た目のBGMボタン（配色はこのアプリのテーマに合わせている） */
@@ -514,5 +525,40 @@ footer.foot a { color: inherit; }
 .read-speed-row input[type="range"] {
   flex: 1;
   max-width: 140px;
-  accent-color: var(--glow-1);
+  accent-color: #8a7ba6;
+}
+
+.replay-btn {
+  display: block;
+  margin: 6px 0 16px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.04);
+  color: var(--ink-dim);
+  font-family: var(--sans);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.replay-btn:active { opacity: 0.7; }
+
+/* FQT LIFE COUNTERのタイトルと同じフォント・太さ・グロー */
+.fqt-brand {
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-weight: 900;
+  font-size: 20px;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  text-shadow: 0 2px 14px rgba(58, 166, 255, 0.45);
+  margin: 4px 0 2px;
+}
+
+/* FQT LIFE COUNTERのbrand-badgeと同じサイズ・形状 */
+.brand-badge {
+  display: block;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  margin: 0 auto 14px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
 }

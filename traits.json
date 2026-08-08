@@ -18,17 +18,17 @@
 
   "categoryEgoMap": {
     "思いやり":     ["selfCenteredness", "selfishness"],
-    "感謝":         ["vanity", "comparing"],
-    "誠実さ":       ["suspicion", "stubbornness"],
-    "勇気":         ["fear", "showingOff"],
-    "許し":         ["jealousy", "attachment"],
-    "理解":         ["stubbornness", "suspicion"],
-    "他者への愛":   ["selfCenteredness", "controlling"],
-    "自然への愛":   ["arrogance", "controlling"],
-    "自己愛":       ["comparing", "fear", "vanity"],
-    "究極の愛":     ["arrogance", "controlling", "attachment"]
+    "感謝":         ["vanity", "showingOff", "comparing"],
+    "誠実さ":       ["arrogance", "stubbornness", "suspicion", "controlling"],
+    "勇気":         ["showingOff", "selfishness", "fear"],
+    "許し":         ["jealousy", "suspicion", "attachment"],
+    "理解":         ["jealousy", "stubbornness", "comparing"],
+    "他者への愛":   ["selfCenteredness", "selfishness", "controlling"],
+    "自然への愛":   ["arrogance", "showingOff", "controlling", "fear"],
+    "自己愛":       ["selfCenteredness", "vanity", "jealousy", "suspicion", "attachment", "fear", "comparing"],
+    "究極の愛":     ["arrogance", "vanity", "stubbornness", "controlling", "attachment"]
   },
   "defaultEgoKeys": ["selfCenteredness", "arrogance"],
 
-  "note": "12の地球人ぽい指標は初期値10からスタート。設問のcategoryごとにcategoryEgoMapで定められた2〜3個の指標だけが、選択のlove値に応じて減っていく（全指標が均等には減らない）。categoryEgoMapに無いcategoryはdefaultEgoKeysを使う。すべての設問に正しく愛のある選択をして完走すると、最終的に全指標が0になるよう、ゲーム完成時(answeredCount===全問数 かつ 愛パワーが最終進化段階に到達)にapp.js側で0へ揃える処理を入れている。"
+  "note": "12の地球人ぽい指標は初期値10からスタート。設問のcategoryごとにcategoryEgoMapで定められた指標が、選択のlove値に応じて少しずつ減っていく（全指標が均等には減らない）。各指標は序盤〜終盤にまたがる複数カテゴリーに結びつけてあり、早い段階のカテゴリーだけで0まで落ちきってしまわないよう分散させている。categoryEgoMapに無いcategoryはdefaultEgoKeysを使う。すべての設問に正しく愛のある選択をして完走すると、最終的に全指標が0になるよう、ゲーム完成時(130回の満点回答 かつ 愛パワー680以上)にapp.js側で0へ揃える処理を入れている。"
 }

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>愛を育てるもの</title>
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=16">
 </head>
 <body>
 <div class="app">
@@ -22,7 +22,22 @@
   <!-- ゲーム本編 -->
   <div id="gameScreen" style="display:none">
     <div class="header">
+      <img class="brand-badge" src="fqt-badge.png" alt="FQT Quantum Tunergy Certified">
       <p class="title">愛 を 育 て る も の</p>
+      <h2 class="fqt-brand">FQT LOVE GARDEN</h2>
+
+      <div class="music-panel">
+        <button class="bgm-btn" id="musicPlayBtn" type="button">🎵　癒しのBGMを再生</button>
+        <select class="bgm-preset-select" id="musicSelect"></select>
+        <select class="bgm-preset-select" id="musicSleepSelect">
+          <option value="0">⏱ スリープタイマー：なし</option>
+          <option value="10">⏱ 10分で停止</option>
+          <option value="20">⏱ 20分で停止</option>
+          <option value="30">⏱ 30分で停止</option>
+          <option value="60">⏱ 60分で停止</option>
+        </select>
+      </div>
+
       <div class="creature-wrap" id="creatureMount"></div>
       <p class="creature-name" id="creatureName"></p>
       <h1 class="stage-name" id="stageName">芽生えの光</h1>
@@ -43,7 +58,8 @@
       </div>
     </div>
 
-    <div>
+    <div class="progress-wrap">
+      <p class="progress-caption">ここまでの歩み</p>
       <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
       <p class="progress-label" id="progressLabel">0 / 0 問</p>
     </div>
@@ -51,6 +67,7 @@
     <div class="card" id="questionCard">
       <p class="eyebrow" id="questionCategory">思いやり</p>
       <p class="question-text" id="questionText">読み込み中…</p>
+      <button class="replay-btn" id="replayBtn">🔊 もう一度読み上げる</button>
       <div class="choices" id="choices"></div>
       <button class="back-btn" id="backBtn" style="display:none">← 戻って選び直す</button>
     </div>
@@ -58,21 +75,6 @@
     <details class="ego-details">
       <summary>地球人ぽい指標（愛が育つと小さくなる）</summary>
       <div id="egoPanel"></div>
-    </details>
-
-    <details class="ego-details">
-      <summary>🎵 癒しの音楽</summary>
-      <div class="music-panel">
-        <button class="bgm-btn" id="musicPlayBtn" type="button">🎵　癒しのBGMを再生</button>
-        <select class="bgm-preset-select" id="musicSelect"></select>
-        <select class="bgm-preset-select" id="musicSleepSelect">
-          <option value="0">⏱ スリープタイマー：なし</option>
-          <option value="10">⏱ 10分で停止</option>
-          <option value="20">⏱ 20分で停止</option>
-          <option value="30">⏱ 30分で停止</option>
-          <option value="60">⏱ 60分で停止</option>
-        </select>
-      </div>
     </details>
 
     <footer class="foot">
@@ -88,8 +90,8 @@
   <div class="feedback-card" id="feedbackCard"></div>
 </div>
 
-<script src="creature.js?v=9"></script>
-<script src="music.js?v=9"></script>
-<script src="app.js?v=9"></script>
+<script src="creature.js?v=16"></script>
+<script src="music.js?v=16"></script>
+<script src="app.js?v=16"></script>
 </body>
 </html>

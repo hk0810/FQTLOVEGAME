@@ -5,7 +5,7 @@
    species.json / traits.json から読み込む。
    ========================================================= */
 
-const CACHE_VERSION = "21"; // データ更新のたびに数字を上げると、キャッシュされた古いJSONを使い続けるのを防げる
+const CACHE_VERSION = "22"; // データ更新のたびに数字を上げると、キャッシュされた古いJSONを使い続けるのを防げる
 
 const CONFIG = {
   questionFiles: ["questions.json"],
@@ -35,7 +35,8 @@ const state = {
   history: [],            // 戻るボタン用の直近の回答履歴 [{qId, delta, egoShrink, mentorId}]
   showPower: false,       // チェックを入れると、常に愛のパワーの増減・合計を表示する
   readAloud: false,       // 設問の読み上げON/OFF
-  readSpeed: 1.0          // 読み上げ速度（0.5〜2.0）
+  readSpeed: 1.0,          // 読み上げ速度（0.5〜2.0）
+  sfxEnabled: true         // 効果音（ファンファーレ・メンターとの出会いの音）ON/OFF。BGMとは別
 };
 
 const COMPLETION = {
@@ -604,27 +605,15 @@ function showEvolutionPopup(stage, onClose) {
 
 /* BGMがすでに許可（一度でも再生開始してオーディオがアンロック済み）されている場合だけ、
    同じ音声グラフを使って短いファンファーレを鳴らす */
+/* BGMや効果音の再生は、効果音トグルがONの場合だけ行う（music.js側の豪華なファンファーレを使う） */
 function playFanfareIfAllowed() {
-  if (typeof bgm === "undefined" || !bgm.ctx) return; // BGMが一度も再生されていなければ鳴らさない
-  try {
-    const ctx = bgm.ctx;
-    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5 E5 G5 C6
-    const now = ctx.currentTime;
-    notes.forEach((freq, i) => {
-      const t = now + i * 0.12;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "triangle";
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(0.18, t + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
-      osc.connect(gain);
-      gain.connect(bgm.master || ctx.destination);
-      osc.start(t);
-      osc.stop(t + 0.55);
-    });
-  } catch (e) { /* 鳴らせなくても致命的ではないので無視 */ }
+  if (!state.sfxEnabled) return;
+  try { playFanfare(); } catch (e) { /* 鳴らせなくても致命的ではないので無視 */ }
+}
+
+function playMentorChimeIfAllowed() {
+  if (!state.sfxEnabled) return;
+  try { playMentorChime(); } catch (e) { /* 無視 */ }
 }
 
 /* ---------------- メンター演出 ---------------- */
@@ -648,6 +637,7 @@ function showMentor(mentor, onClose) {
     <button class="feedback-btn" id="feedbackNext">問いに答える</button>
   `;
   overlay.classList.add("show");
+  playMentorChimeIfAllowed();
   document.getElementById("feedbackNext").addEventListener("click", () => {
     overlay.classList.remove("show");
     onClose();
@@ -746,6 +736,16 @@ function setupMusicUI() {
   const select = document.getElementById("musicSelect");
   const playBtn = document.getElementById("musicPlayBtn");
   const sleepSelect = document.getElementById("musicSleepSelect");
+  const sfxToggle = document.getElementById("sfxToggle");
+  sfxToggle.checked = state.sfxEnabled;
+  if (!sfxToggle.dataset.bound) {
+    sfxToggle.addEventListener("change", () => {
+      state.sfxEnabled = sfxToggle.checked;
+      saveState();
+      if (state.sfxEnabled) { try { ensureSfxAudio(); } catch (e) {} }
+    });
+    sfxToggle.dataset.bound = "1";
+  }
   if (select.dataset.bound) return;
 
   MUSIC_TRACKS.forEach(t => {

@@ -626,3 +626,8 @@ footer.foot a { color: inherit; }
   color: var(--glow-1);
   margin: 0 0 10px;
 }
+
+.sfx-toggle {
+  margin-top: 6px;
+  font-size: 11px;
+}

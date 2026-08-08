@@ -206,3 +206,82 @@ function applySleepTimer(minutes, onStop) {
     sleepTimeoutId = null;
   }, minutes * 60 * 1000);
 }
+
+/* =========================================================
+   効果音（SFX） — BGMとは独立してON/OFFできる
+   BGMがすでに鳴っていればそのオーディオグラフを共用し、
+   鳴っていなければ効果音専用の軽いオーディオグラフを用意する
+   ========================================================= */
+let sfxCtx = null, sfxMaster = null;
+
+function ensureSfxAudio() {
+  if (bgm.ctx) return; // BGM用のグラフがあればそちらを使う
+  if (!sfxCtx) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    sfxCtx = new AudioCtx();
+    sfxMaster = sfxCtx.createGain();
+    sfxMaster.gain.value = 0.8;
+    sfxMaster.connect(sfxCtx.destination);
+  }
+  if (sfxCtx.state === "suspended") sfxCtx.resume();
+}
+
+function getSfxNodes() {
+  if (bgm.ctx) return { ctx: bgm.ctx, master: bgm.master };
+  return { ctx: sfxCtx, master: sfxMaster };
+}
+
+function playTone(ctx, master, freq, startTime, duration, waveform, gainLevel) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = waveform;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(gainLevel, startTime + 0.03);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  osc.connect(gain);
+  gain.connect(master);
+  osc.start(startTime);
+  osc.stop(startTime + duration + 0.05);
+}
+
+// 進化のファンファーレ（豪華版）：和音の土台＋上昇メロディ＋高音のきらめき
+function playFanfare() {
+  ensureSfxAudio();
+  const { ctx, master } = getSfxNodes();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+
+  // 土台の和音（C・E・G）をロングトーンで鳴らし、厚みを出す
+  [523.25, 659.25, 783.99].forEach(freq => {
+    playTone(ctx, master, freq, now, 1.0, "sine", 0.13);
+  });
+
+  // 上昇するメインメロディ（ドミソド ミ）
+  const mainNotes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+  mainNotes.forEach((freq, i) => {
+    playTone(ctx, master, freq, now + i * 0.1, 0.5, "triangle", 0.22);
+  });
+
+  // 仕上げの高音のきらめき
+  const sparkleNotes = [1567.98, 1760.00, 1975.53, 2093.00];
+  sparkleNotes.forEach((freq, i) => {
+    playTone(ctx, master, freq, now + 0.5 + i * 0.06, 0.35, "triangle", 0.13);
+  });
+}
+
+// メンターとの出会いの音（ファンファーレとは違う、静かで神秘的な響き）
+function playMentorChime() {
+  ensureSfxAudio();
+  const { ctx, master } = getSfxNodes();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+
+  // ゆっくり降りてくる、澄んだベルのような3音
+  const notes = [1046.50, 880.00, 659.25];
+  notes.forEach((freq, i) => {
+    playTone(ctx, master, freq, now + i * 0.35, 1.3, "sine", 0.16);
+  });
+  // 下で支える低い持続音
+  playTone(ctx, master, 220.00, now, 1.8, "sine", 0.08);
+}

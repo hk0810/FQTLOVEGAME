@@ -279,7 +279,7 @@ function renderNextQuestion() {
   document.getElementById("questionCategory").textContent = `LEVEL ${q.level} ・ ${q.category}`;
   document.getElementById("questionText").textContent = q.question;
 
-  if (state.readAloud) speakText(q.question);
+  if (state.readAloud) speakQuestion(q);
 
   const wrap = document.getElementById("choices");
   wrap.innerHTML = "";
@@ -515,6 +515,19 @@ function speakText(text) {
   window.speechSynthesis.speak(utter);
 }
 
+// 設問文に続けて、A〜Eの選択肢もそのまま読み上げる
+function speakQuestion(q) {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const parts = [q.question, ...q.choices.map(c => `${c.id}。${c.text}`)];
+  parts.forEach(text => {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "ja-JP";
+    utter.rate = state.readSpeed;
+    window.speechSynthesis.speak(utter); // cancelしない限り自動でキューに積まれ、順番に読み上げられる
+  });
+}
+
 function setupReadAloudUI() {
   const toggle = document.getElementById("readAloudToggle");
   const speedRow = document.getElementById("readSpeedRow");
@@ -533,7 +546,7 @@ function setupReadAloudUI() {
     saveState();
     if (state.readAloud) {
       const q = nextUnanswered();
-      if (q) speakText(q.question);
+      if (q) speakQuestion(q);
     } else if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }

@@ -214,21 +214,21 @@ function applySleepTimer(minutes, onStop) {
    ========================================================= */
 let sfxCtx = null, sfxMaster = null;
 
+// 効果音は、BGM用のAudioContext(あれば)を間借りしつつも、
+// 音量ノードは必ず専用のものを使う（BGMを止めてもフェードアウトの影響を受けないように）
 function ensureSfxAudio() {
-  if (bgm.ctx) return; // BGM用のグラフがあればそちらを使う
-  if (!sfxCtx) {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    sfxCtx = new AudioCtx();
-    sfxMaster = sfxCtx.createGain();
+  const activeCtx = bgm.ctx || sfxCtx || (sfxCtx = new (window.AudioContext || window.webkitAudioContext)());
+  if (!sfxMaster || sfxMaster.context !== activeCtx) {
+    sfxMaster = activeCtx.createGain();
     sfxMaster.gain.value = 0.8;
-    sfxMaster.connect(sfxCtx.destination);
+    sfxMaster.connect(activeCtx.destination);
   }
-  if (sfxCtx.state === "suspended") sfxCtx.resume();
+  if (activeCtx.state === "suspended") activeCtx.resume();
 }
 
 function getSfxNodes() {
-  if (bgm.ctx) return { ctx: bgm.ctx, master: bgm.master };
-  return { ctx: sfxCtx, master: sfxMaster };
+  const ctx = bgm.ctx || sfxCtx;
+  return { ctx, master: sfxMaster };
 }
 
 function playTone(ctx, master, freq, startTime, duration, waveform, gainLevel) {

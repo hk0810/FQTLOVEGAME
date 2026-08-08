@@ -473,12 +473,11 @@ function makeRng(seed) {
 }
 function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
 
-/* ---------------- 癒しの音楽 ---------------- */
+/* ---------------- 癒しの音楽（FQT LIFE COUNTERと同じ操作感） ---------------- */
 function setupMusicUI() {
   const select = document.getElementById("musicSelect");
   const playBtn = document.getElementById("musicPlayBtn");
-  const volume = document.getElementById("musicVolume");
-  const status = document.getElementById("musicStatus");
+  const sleepSelect = document.getElementById("musicSleepSelect");
   if (select.dataset.bound) return;
 
   MUSIC_TRACKS.forEach(t => {
@@ -488,43 +487,41 @@ function setupMusicUI() {
     select.appendChild(opt);
   });
 
-  let playing = false;
-
-  select.addEventListener("change", () => {
-    if (playing) {
-      playTrack(select.value);
-      const t = MUSIC_TRACKS.find(t => t.id === select.value);
-      status.textContent = `▶️ 再生中：${t.name}`;
-    }
-  });
   playBtn.addEventListener("click", () => {
     try {
-      if (playing) {
+      if (bgm.playing) {
         stopTrack();
-        playBtn.textContent = "再生";
-        status.textContent = "停止中";
-        playing = false;
+        playBtn.textContent = "🎵　癒しのBGMを再生";
+        playBtn.classList.remove("active");
+        clearSleepTimer();
       } else {
-        const trackId = select.value || MUSIC_TRACKS[0].id;
-        const t = MUSIC_TRACKS.find(t => t.id === trackId);
-        if (!t) { status.textContent = "エラー：曲が見つかりません"; return; }
-        playTrack(trackId);
-        playBtn.textContent = "停止";
-        status.textContent = `▶️ 再生中：${t.name}`;
-        playing = true;
-        // 一部のブラウザでは最初の1回でコンテキストの起動が遅れることがあるため、少し待って状態を確認する
-        setTimeout(() => {
-          if (audioCtx && audioCtx.state === "suspended") {
-            status.textContent = "🔇 音声がブロックされています。もう一度「再生」を押してください。";
-          }
-        }, 400);
+        playTrack(select.value || MUSIC_TRACKS[0].id);
+        playBtn.textContent = "🔇　BGMを停止";
+        playBtn.classList.add("active");
+        applySleepTimer(Number(sleepSelect.value), () => {
+          playBtn.textContent = "🎵　癒しのBGMを再生";
+          playBtn.classList.remove("active");
+        });
       }
     } catch (err) {
-      status.textContent = `エラー：${err.message}`;
       console.error(err);
     }
   });
-  volume.addEventListener("input", () => setMusicVolume(Number(volume.value)));
+
+  // 音色プリセットを変更した時：再生中ならその場で音色を切り替える
+  select.addEventListener("change", () => {
+    if (bgm.playing) playTrack(select.value);
+  });
+
+  // スリープタイマーを変更した時：再生中なら新しい時間で数え直す
+  sleepSelect.addEventListener("change", () => {
+    if (bgm.playing) {
+      applySleepTimer(Number(sleepSelect.value), () => {
+        playBtn.textContent = "🎵　癒しのBGMを再生";
+        playBtn.classList.remove("active");
+      });
+    }
+  });
 
   select.dataset.bound = "1";
 }

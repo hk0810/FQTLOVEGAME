@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>愛を育てるもの</title>
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 <div class="app">
@@ -42,12 +42,15 @@
     <details class="ego-details">
       <summary>🎵 癒しの音楽</summary>
       <div class="music-panel">
-        <select id="musicSelect"></select>
-        <div class="music-controls">
-          <button class="feedback-btn" id="musicPlayBtn" style="width:auto;padding:8px 18px">再生</button>
-          <input type="range" id="musicVolume" min="0" max="1" step="0.05" value="0.9">
-        </div>
-        <p class="music-status" id="musicStatus">停止中</p>
+        <button class="bgm-btn" id="musicPlayBtn" type="button">🎵　癒しのBGMを再生</button>
+        <select class="bgm-preset-select" id="musicSelect"></select>
+        <select class="bgm-preset-select" id="musicSleepSelect">
+          <option value="0">⏱ スリープタイマー：なし</option>
+          <option value="10">⏱ 10分で停止</option>
+          <option value="20">⏱ 20分で停止</option>
+          <option value="30">⏱ 30分で停止</option>
+          <option value="60">⏱ 60分で停止</option>
+        </select>
       </div>
     </details>
 
@@ -76,8 +79,8 @@
   <div class="feedback-card" id="feedbackCard"></div>
 </div>
 
-<script src="creature.js?v=3"></script>
-<script src="music.js?v=3"></script>
-<script src="app.js?v=3"></script>
+<script src="creature.js?v=5"></script>
+<script src="music.js?v=5"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>
